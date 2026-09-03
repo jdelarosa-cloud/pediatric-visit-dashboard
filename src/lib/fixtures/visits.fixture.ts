@@ -1,4 +1,5 @@
-import type { ParseCounts } from '../types.ts'
+import { UNKNOWN_LOCATION } from '../normalizeRow.ts'
+import type { ParseCounts, Visit } from '../types.ts'
 
 export const FIXTURE_CSV = `visit_id,patient_id_hashed,location,visit_date,visit_reason,wait_time_minutes,provider_id
 V001,h-001,"Bethesda, MD",2026-07-01,Fever,25,DR1
@@ -33,3 +34,96 @@ export const FIXTURE_PATIENT_HASHES = [
 
 export const FIXTURE_HEADER =
   'visit_id,patient_id_hashed,location,visit_date,visit_reason,wait_time_minutes,provider_id'
+
+const fixtureVisits: Visit[] = [
+  {
+    visitId: 'K001',
+    patientIdHashed: 'k-001',
+    location: 'Bethesda, MD',
+    visitDate: '2026-07-01',
+    visitReason: 'Fever',
+    waitTimeMinutes: 25,
+    providerId: 'DR1',
+    sourceRow: 1,
+  },
+  {
+    visitId: 'K002',
+    patientIdHashed: 'k-002',
+    location: 'Bethesda, MD',
+    visitDate: '2026-07-02',
+    visitReason: 'Cough',
+    waitTimeMinutes: 15,
+    providerId: 'DR2',
+    sourceRow: 2,
+  },
+  {
+    visitId: 'K003',
+    patientIdHashed: 'k-003',
+    location: 'Bethesda, MD',
+    visitDate: '2026-07-03',
+    // Untrimmed and lower-case on purpose: KPI grouping must fold it into
+    // "Fever" without relying on the parser having cleaned it first (P13).
+    visitReason: ' fever ',
+    waitTimeMinutes: null,
+    providerId: 'DR1',
+    sourceRow: 3,
+  },
+  {
+    visitId: 'K004',
+    patientIdHashed: 'k-004',
+    location: 'Hoboken, NJ',
+    visitDate: '2026-07-02',
+    visitReason: 'Rash',
+    waitTimeMinutes: 10,
+    providerId: 'DR2',
+    sourceRow: 4,
+  },
+  {
+    visitId: 'K005',
+    patientIdHashed: 'k-005',
+    location: 'Hoboken, NJ',
+    visitDate: '2026-07-04',
+    visitReason: 'Fever',
+    waitTimeMinutes: 35,
+    providerId: 'DR1',
+    sourceRow: 5,
+  },
+  {
+    visitId: 'K006',
+    patientIdHashed: 'k-006',
+    location: 'Hoboken, NJ',
+    visitDate: '2026-07-05',
+    visitReason: 'Cough',
+    waitTimeMinutes: 0,
+    providerId: 'DR2',
+    sourceRow: 6,
+  },
+  {
+    visitId: 'K007',
+    patientIdHashed: 'k-007',
+    location: UNKNOWN_LOCATION,
+    visitDate: '2026-07-06',
+    visitReason: 'Ear pain',
+    waitTimeMinutes: null,
+    providerId: 'DR1',
+    sourceRow: 7,
+  },
+  {
+    visitId: 'K008',
+    patientIdHashed: 'k-008',
+    location: UNKNOWN_LOCATION,
+    visitDate: '2026-07-07',
+    visitReason: 'Rash',
+    waitTimeMinutes: null,
+    providerId: 'DR2',
+    sourceRow: 8,
+  },
+]
+
+/**
+ * Deep-frozen so a filter or KPI function that mutates its input throws here
+ * (module code is strict mode) instead of quietly corrupting the other tests.
+ */
+export const FIXTURE_VISITS: readonly Visit[] = Object.freeze(
+  fixtureVisits.map((visit) => Object.freeze(visit)),
+)

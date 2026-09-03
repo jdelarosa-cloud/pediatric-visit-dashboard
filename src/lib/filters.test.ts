@@ -1,0 +1,72 @@
+import { describe, expect, it } from 'vitest'
+import {
+  DEFAULT_FILTERS,
+  applyFilters,
+  filterByDateRange,
+  filterByLocation,
+  filterByMinWait,
+  locationOptions,
+} from './filters.ts'
+import { FIXTURE_VISITS } from './fixtures/visits.fixture.ts'
+import type { Visit } from './types.ts'
+
+function ids(visits: readonly Visit[]): string[] {
+  return visits.map((visit) => visit.visitId)
+}
+
+describe('filterByDateRange', () => {
+  it('P12: date range is inclusive on both ends', () => {
+    expect(ids(filterByDateRange(FIXTURE_VISITS, '2026-07-02', '2026-07-05'))).toEqual([
+      'K002',
+      'K003',
+      'K004',
+      'K005',
+      'K006',
+    ])
+    expect(ids(filterByDateRange(FIXTURE_VISITS, null, '2026-07-05'))).toContain('K001')
+    expect(ids(filterByDateRange(FIXTURE_VISITS, '2026-07-02', null))).toEqual([
+      'K002',
+      'K003',
+      'K004',
+      'K005',
+      'K006',
+      'K007',
+      'K008',
+    ])
+  })
+})
+
+describe('filterByLocation', () => {
+  it('D9: location filter matches exactly and treats "Unknown" as a normal group', () => {
+    expect(ids(filterByLocation(FIXTURE_VISITS, 'Unknown'))).toEqual(['K007', 'K008'])
+    expect(ids(filterByLocation(FIXTURE_VISITS, null))).toHaveLength(8)
+    expect(locationOptions(FIXTURE_VISITS)).toEqual(['Bethesda, MD', 'Hoboken, NJ', 'Unknown'])
+  })
+})
+
+describe('filterByMinWait', () => {
+  it('P14/D7: a blank threshold means no wait filtering; an active threshold excludes null waits and includes zero', () => {
+    expect(ids(filterByMinWait(FIXTURE_VISITS, null))).toHaveLength(8)
+    expect(ids(filterByMinWait(FIXTURE_VISITS, 0))).toEqual([
+      'K001',
+      'K002',
+      'K004',
+      'K005',
+      'K006',
+    ])
+    expect(ids(filterByMinWait(FIXTURE_VISITS, 15))).toEqual(['K001', 'K002', 'K005'])
+  })
+})
+
+describe('applyFilters', () => {
+  it('applyFilters composes the three filters', () => {
+    const filtered = applyFilters(FIXTURE_VISITS, {
+      startDate: '2026-07-02',
+      endDate: '2026-07-05',
+      location: 'Hoboken, NJ',
+      minWait: 10,
+    })
+    expect(ids(filtered)).toEqual(['K004', 'K005'])
+    expect(ids(applyFilters(FIXTURE_VISITS, DEFAULT_FILTERS))).toHaveLength(8)
+  })
+})

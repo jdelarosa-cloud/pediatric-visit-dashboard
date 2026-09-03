@@ -77,3 +77,32 @@ export type ParseCounts = {
 export type ParseOutcome =
   | { ok: false; error: ParseError }
   | { ok: true; visits: Visit[]; warnings: ParseWarning[]; counts: ParseCounts }
+
+export type Filters = {
+  startDate: string | null
+  endDate: string | null
+  /** Null means "all locations" (D9); "Unknown" is a selectable value, not a null. */
+  location: string | null
+  /** Null means the threshold is inactive; 0 is an active threshold (D7). */
+  minWait: number | null
+}
+
+export type LocationWaitStat = {
+  location: string
+  /** Null when no visit at this location has a recorded wait (D11). */
+  avgWait: number | null
+  visits: number
+  withWait: number
+}
+
+export type ReasonCount = {
+  reason: string
+  count: number
+}
+
+export type Kpis = {
+  totalVisits: number
+  avgWaitByLocation: LocationWaitStat[]
+  topReasons: ReasonCount[]
+  visitsWithoutWait: number
+}
