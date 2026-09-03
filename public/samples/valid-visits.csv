@@ -1,0 +1,13 @@
+visit_id,patient_id_hashed,location,visit_date,visit_reason,wait_time_minutes,provider_id
+V100,h-100,"Bethesda, MD",2026-07-06,Fever,25,DR1
+V101,h-101,"Hoboken, NJ",2026-07-07,Cough,15,DR2
+V102,h-102,"Forest Hills, NY",2026-07-08,Rash,40,DR3
+V103,h-103,"Bethesda, MD",2026-07-09,Ear pain,10,DR1
+V104,h-104,"Hoboken, NJ",2026-07-10,Sore throat,35,DR2
+V105,h-105,"Forest Hills, NY",2026-07-11,Injury,60,DR3
+V106,h-106,"Bethesda, MD",2026-07-12,Fever,20,DR2
+V107,h-107,"Hoboken, NJ",2026-07-13,Cough,5,DR1
+V108,h-108,"Forest Hills, NY",2026-07-14,Fever,45,DR3
+V109,h-109,"Bethesda, MD",2026-07-15,Sore throat,30,DR1
+V110,h-110,"Hoboken, NJ",2026-07-16,Ear pain,50,DR2
+V111,h-111,"Forest Hills, NY",2026-07-17,Injury,55,DR3

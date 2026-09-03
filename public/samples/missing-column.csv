@@ -1,0 +1,6 @@
+visit_id,patient_id_hashed,location,visit_date,visit_reason,wait_time_minutes
+V100,h-100,"Bethesda, MD",2026-07-06,Fever,25
+V101,h-101,"Hoboken, NJ",2026-07-07,Cough,15
+V102,h-102,"Forest Hills, NY",2026-07-08,Rash,40
+V103,h-103,"Bethesda, MD",2026-07-09,Ear pain,10
+V104,h-104,"Hoboken, NJ",2026-07-10,Sore throat,35

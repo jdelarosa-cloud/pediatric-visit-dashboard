@@ -19,3 +19,61 @@ export type Visit = {
   providerId: string
   sourceRow: number
 }
+
+export type ParseErrorCode =
+  | 'EMPTY_FILE'
+  | 'NO_DATA_ROWS'
+  | 'MISSING_COLUMNS'
+  | 'AMBIGUOUS_COLUMNS'
+  | 'PARSE_FAILURE'
+
+export type ParseError = {
+  code: ParseErrorCode
+  message: string
+  missingColumns?: string[]
+  foundColumns?: string[]
+}
+
+export type WarningCode =
+  | 'missingVisitId'
+  | 'missingVisitDate'
+  | 'invalidVisitDate'
+  | 'duplicateVisitId'
+  | 'blankLocation'
+  | 'blankReason'
+  | 'missingWait'
+  | 'nonnumericWait'
+  | 'negativeWait'
+  | 'missingPatientId'
+  | 'missingProviderId'
+  | 'textNormalized'
+  | 'headersNormalized'
+
+export type WarningKind = 'skipped' | 'normalized' | 'info'
+
+export type WarningExample = {
+  /** Data-row number, where row 1 is the first row after the header (D20). */
+  row: number
+  /** The offending cell, never a patient hash (AC-12). */
+  value?: string
+}
+
+export type ParseWarning = {
+  code: WarningCode
+  kind: WarningKind
+  count: number
+  message: string
+  examples: WarningExample[]
+}
+
+export type ParseCounts = {
+  totalRows: number
+  accepted: number
+  skipped: number
+  /** Accepted rows with at least one normalization, not the number of normalizations. */
+  normalized: number
+}
+
+export type ParseOutcome =
+  | { ok: false; error: ParseError }
+  | { ok: true; visits: Visit[]; warnings: ParseWarning[]; counts: ParseCounts }

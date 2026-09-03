@@ -1,3 +1,5 @@
+import { ParserHarness } from './dev/ParserHarness.tsx'
+
 function App() {
   return (
     <div className="app">
@@ -8,7 +10,9 @@ function App() {
           location, and top visit reasons.
         </p>
       </header>
-      <main aria-label="Dashboard"></main>
+      <main aria-label="Dashboard">
+        <ParserHarness />
+      </main>
     </div>
   )
 }

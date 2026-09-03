@@ -1,0 +1,19 @@
+Visit_ID,patient_id_hashed,location,visit_date,visit_reason,wait_time_minutes,provider_id
+V200,h-200,"Bethesda, MD",2026-07-06,Fever,20,DR1
+V201,h-201,"Hoboken, NJ",2026-07-06,Cough,15,DR2
+V202,h-202,"bethesda, md",2026-07-07,Fever,25,DR1
+V203,h-203,,2026-07-07,Rash,10,DR3
+V204,h-204,"Bethesda, MD",2026-07-08,,30,DR1
+V205,h-205,"Hoboken, NJ",2026-07-08,Cough,,DR2
+V206,h-206,"Bethesda, MD",2026-07-09,Fever,abc,DR1
+V207,h-207,"Hoboken, NJ",2026-07-09,Earache,-10,DR2
+V208,,"Bethesda, MD",2026-07-10,Fever,20,
+V200,h-210,"Bethesda, MD",2026-07-11,Fever,22,DR1
+,h-211,"Hoboken, NJ",2026-07-11,Cough,12,DR2
+V212,h-212,"Bethesda, MD",07/04/2026,Fever,20,DR1
+V213,h-213,"Hoboken, NJ",2026-7-4,Cough,14,DR2
+V214,h-214,"Bethesda, MD",2026-02-30,Fever,16,DR1
+V215,h-215,"Hoboken, NJ",07/05/2026,Rash,19,DR2
+V216,h-216,"Bethesda, MD",2026-7-5,Fever,21,DR1
+V217,h-217,"Hoboken, NJ",2026-02-31,Cough,17,DR2
+V218,h-218,"Bethesda, MD",,Fever,13,DR1
