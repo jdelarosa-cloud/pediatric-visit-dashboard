@@ -7,7 +7,27 @@ import {
   FIXTURE_PATIENT_HASHES,
 } from './fixtures/visits.fixture.ts'
 import { MAX_WARNING_EXAMPLES, parseVisitsCsv } from './parseVisitsCsv.ts'
-import type { ParseWarning } from './types.ts'
+import type { ParseWarning, WarningCode } from './types.ts'
+
+// Hardcoded rather than derived from the type, on purpose: this is the
+// structural check that fails when a new WarningCode is added to types.ts
+// without a matching reproduction being added below (AC-12, VERDICT item 7).
+const ALL_WARNING_CODES: WarningCode[] = [
+  'raggedRow',
+  'missingVisitId',
+  'missingVisitDate',
+  'invalidVisitDate',
+  'duplicateVisitId',
+  'blankLocation',
+  'blankReason',
+  'missingWait',
+  'nonnumericWait',
+  'negativeWait',
+  'missingPatientId',
+  'missingProviderId',
+  'textNormalized',
+  'headersNormalized',
+]
 
 function warningsByCode(warnings: ParseWarning[]): Record<string, ParseWarning> {
   return Object.fromEntries(warnings.map((warning) => [warning.code, warning]))
@@ -186,6 +206,195 @@ describe('parseVisitsCsv parsing', () => {
     if (!outcome.ok) return
     expect(outcome.visits.map((visit) => visit.location)).toEqual(['Unknown', 'Unknown'])
     expect(warningsByCode(outcome.warnings).textNormalized).toBeUndefined()
+  })
+
+  it('D8/P15: a location literally spelled "unknown" folds into the Unknown placeholder', () => {
+    const text = `${FIXTURE_HEADER}\nV900,h-900,unknown,2026-07-01,Fever,20,DR1\n`
+    const outcome = parseVisitsCsv(text)
+    expect(outcome.ok).toBe(true)
+    if (!outcome.ok) return
+    expect(outcome.visits[0].location).toBe('Unknown')
+    const textNormalized = warningsByCode(outcome.warnings).textNormalized
+    expect(textNormalized.count).toBe(1)
+    expect(textNormalized.examples[0].value).toBe('unknown')
+    expect(textNormalized.message).toContain('adjusted to match an existing spelling')
+  })
+
+  it('D8/P15: a visit_reason literally spelled "unspecified" folds into the Unspecified placeholder', () => {
+    const text = `${FIXTURE_HEADER}\nV901,h-901,Bethesda,2026-07-01,unspecified,20,DR1\n`
+    const outcome = parseVisitsCsv(text)
+    expect(outcome.ok).toBe(true)
+    if (!outcome.ok) return
+    expect(outcome.visits[0].visitReason).toBe('Unspecified')
+    const textNormalized = warningsByCode(outcome.warnings).textNormalized
+    expect(textNormalized.count).toBe(1)
+    expect(textNormalized.examples[0].value).toBe('unspecified')
+  })
+
+  it('P4/P5: a row skipped for an invalid date does not consume its visit_id, so a later valid row with the same id is accepted (rule order)', () => {
+    const text = `${FIXTURE_HEADER}\nV900,h-900,"Bethesda, MD",13/40/2026,Fever,20,DR1\nV900,h-901,"Bethesda, MD",2026-07-01,Fever,20,DR1\n`
+    const outcome = parseVisitsCsv(text)
+    expect(outcome.ok).toBe(true)
+    if (!outcome.ok) return
+    expect(outcome.visits).toHaveLength(1)
+    expect(outcome.visits[0].sourceRow).toBe(2)
+    expect(warningsByCode(outcome.warnings).duplicateVisitId).toBeUndefined()
+    expect(warningsByCode(outcome.warnings).invalidVisitDate.count).toBe(1)
+  })
+
+  it('P4: visit_id comparison is case-sensitive, so "V001" and "v001" are kept as distinct visits', () => {
+    const text = `${FIXTURE_HEADER}\nV001,h-001,"Bethesda, MD",2026-07-01,Fever,20,DR1\nv001,h-002,"Hoboken, NJ",2026-07-02,Cough,15,DR2\n`
+    const outcome = parseVisitsCsv(text)
+    expect(outcome.ok).toBe(true)
+    if (!outcome.ok) return
+    expect(outcome.visits.map((visit) => visit.visitId)).toEqual(['V001', 'v001'])
+    expect(warningsByCode(outcome.warnings).duplicateVisitId).toBeUndefined()
+  })
+
+  it('handles a CRLF file with a quoted field containing an embedded newline without miscounting rows', () => {
+    const text = `${FIXTURE_HEADER}\r\nV001,h-001,"Bethesda,\nMD",2026-07-01,Fever,20,DR1\r\nV002,h-002,"Hoboken, NJ",2026-07-02,Cough,15,DR2\r\n`
+    const outcome = parseVisitsCsv(text)
+    expect(outcome.ok).toBe(true)
+    if (!outcome.ok) return
+    expect(outcome.visits.map((visit) => visit.sourceRow)).toEqual([1, 2])
+    expect(outcome.visits[0].location).toBe('Bethesda, MD')
+    expect(warningsByCode(outcome.warnings).textNormalized).toBeDefined()
+  })
+})
+
+describe('parseVisitsCsv P16 ragged rows', () => {
+  // Distinct header order from FIXTURE_HEADER's, chosen so a shifted cell would
+  // land in `location` or `visitReason` rather than being caught incidentally
+  // by the date check, matching the council's reproduction.
+  const header = 'visit_id,visit_date,location,patient_id_hashed,visit_reason,wait_time_minutes,provider_id'
+  const patientHashes = ['h-r006', 'h-r007', 'h-r008', 'h-r009']
+
+  it('P16: a row missing one cell is skipped as raggedRow, not read position-shifted', () => {
+    const text = `${header}\nV006,2026-07-06,h-r006,Fever,20,DR6\n`
+    const outcome = parseVisitsCsv(text)
+    expect(outcome.ok).toBe(true)
+    if (!outcome.ok) return
+    expect(outcome.visits).toEqual([])
+    const ragged = warningsByCode(outcome.warnings).raggedRow
+    expect(ragged.kind).toBe('skipped')
+    expect(ragged.count).toBe(1)
+    expect(ragged.examples[0].value).toBe('expected 7 columns, found 6')
+  })
+
+  it('P16: an unquoted comma inside a location is skipped as raggedRow, not accepted with shifted fields', () => {
+    const text = `${header}\nV007,2026-07-07,Bethesda, MD,h-r007,Fever,20,DR7\n`
+    const outcome = parseVisitsCsv(text)
+    expect(outcome.ok).toBe(true)
+    if (!outcome.ok) return
+    expect(outcome.visits).toEqual([])
+    const ragged = warningsByCode(outcome.warnings).raggedRow
+    expect(ragged.count).toBe(1)
+    expect(ragged.examples[0].value).toBe('expected 7 columns, found 8')
+  })
+
+  it('P16: an extra trailing cell is skipped as raggedRow', () => {
+    const text = `${header}\nV008,2026-07-08,"Hoboken, NJ",h-r008,Fever,20,DR8,extra\n`
+    const outcome = parseVisitsCsv(text)
+    expect(outcome.ok).toBe(true)
+    if (!outcome.ok) return
+    expect(outcome.visits).toEqual([])
+    const ragged = warningsByCode(outcome.warnings).raggedRow
+    expect(ragged.count).toBe(1)
+    expect(ragged.examples[0].value).toBe('expected 7 columns, found 8')
+  })
+
+  it('AC-12: none of the three ragged reproductions leak a patient hash into an accepted visit or a warning example', () => {
+    const text = [
+      header,
+      'V006,2026-07-06,h-r006,Fever,20,DR6',
+      'V007,2026-07-07,Bethesda, MD,h-r007,Fever,20,DR7',
+      'V008,2026-07-08,"Hoboken, NJ",h-r008,Fever,20,DR8,extra',
+      'V009,2026-07-09,"Bethesda, MD",h-r009,Cough,15,DR9',
+    ].join('\n')
+    const outcome = parseVisitsCsv(`${text}\n`)
+    expect(outcome.ok).toBe(true)
+    if (!outcome.ok) return
+    expect(outcome.counts).toEqual({ totalRows: 4, accepted: 1, skipped: 3, normalized: 0 })
+    for (const visit of outcome.visits) {
+      for (const hash of patientHashes) {
+        expect(visit.location).not.toBe(hash)
+        expect(visit.visitReason).not.toBe(hash)
+        expect(visit.providerId).not.toBe(hash)
+      }
+    }
+    const values = outcome.warnings.flatMap((warning) =>
+      warning.examples.map((example) => example.value ?? ''),
+    )
+    const joined = values.join(' | ')
+    for (const hash of patientHashes) {
+      expect(joined).not.toContain(hash)
+    }
+    // The ragged example carries only the two column counts, never cell text.
+    const ragged = warningsByCode(outcome.warnings).raggedRow
+    for (const example of ragged.examples) {
+      expect(example.value).toMatch(/^expected \d+ columns, found \d+$/)
+    }
+  })
+})
+
+describe('parseVisitsCsv AC-12 structural privacy: every warning code, no patient hash', () => {
+  // Header casing triggers headersNormalized; each data row triggers exactly
+  // one of the remaining codes, so the union in ALL_WARNING_CODES is fully
+  // exercised from a single input (VERDICT item 7).
+  const header =
+    'Visit_ID,patient_id_hashed,Location,visit_date,visit_reason,wait_time_minutes,provider_id'
+  const rows = [
+    'A1,ph-A1,2026-07-01,Fever,20,DRA', // raggedRow: one cell short
+    ',ph-B1,"Bethesda, MD",2026-07-02,Fever,20,DRB', // missingVisitId
+    'C1,ph-C1,"Bethesda, MD",,Fever,20,DRC', // missingVisitDate
+    'D1,ph-D1,"Bethesda, MD",07/04/2026,Fever,20,DRD', // invalidVisitDate
+    'E1,ph-E1,"Bethesda, MD",2026-07-04,Fever,20,DRE', // accepted, sets canonical spelling
+    'F1,ph-F1,,2026-07-05,Fever,20,DRF', // blankLocation
+    'G1,ph-G1,"Bethesda, MD",2026-07-06,,20,DRG', // blankReason
+    'H1,ph-H1,"Bethesda, MD",2026-07-07,Fever,,DRH', // missingWait
+    'I1,ph-I1,"Bethesda, MD",2026-07-08,Fever,abc,DRI', // nonnumericWait
+    'J1,ph-J1,"Bethesda, MD",2026-07-09,Fever,-5,DRJ', // negativeWait
+    'K1,,"Bethesda, MD",2026-07-10,Fever,20,DRK', // missingPatientId
+    'L1,ph-L1,"Bethesda, MD",2026-07-11,Fever,20,', // missingProviderId
+    'M1,ph-M1,"bethesda, md",2026-07-12,Fever,20,DRM', // textNormalized (case fold)
+    'E1,ph-E1dup,"Hoboken, NJ",2026-07-13,Cough,25,DRE2', // duplicateVisitId
+  ]
+  const patientHashes = [
+    'ph-A1',
+    'ph-B1',
+    'ph-C1',
+    'ph-D1',
+    'ph-E1',
+    'ph-E1dup',
+    'ph-F1',
+    'ph-G1',
+    'ph-H1',
+    'ph-I1',
+    'ph-J1',
+    'ph-L1',
+    'ph-M1',
+  ]
+  const outcome = parseVisitsCsv(`${[header, ...rows].join('\n')}\n`)
+
+  it('produces exactly the full WarningCode set, so an uncovered new code fails this test', () => {
+    expect(outcome.ok).toBe(true)
+    if (!outcome.ok) return
+    expect(Object.keys(warningsByCode(outcome.warnings)).sort()).toEqual(
+      [...ALL_WARNING_CODES].sort(),
+    )
+  })
+
+  it('AC-12: no message and no example value contains any patient hash present in the input', () => {
+    expect(outcome.ok).toBe(true)
+    if (!outcome.ok) return
+    for (const warning of outcome.warnings) {
+      for (const hash of patientHashes) {
+        expect(warning.message).not.toContain(hash)
+        for (const example of warning.examples) {
+          expect(example.value ?? '').not.toContain(hash)
+        }
+      }
+    }
   })
 })
 

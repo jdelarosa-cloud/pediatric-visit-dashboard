@@ -36,11 +36,13 @@ export function averageWaitByLocation(visits: readonly Visit[]): LocationWaitSta
 
   return stats.sort((a, b) => {
     if (a.avgWait === null || b.avgWait === null) {
-      if (a.avgWait === b.avgWait) return a.location.localeCompare(b.location)
+      if (a.avgWait === b.avgWait) {
+        return a.location.localeCompare(b.location, 'en', { sensitivity: 'base' })
+      }
       return a.avgWait === null ? 1 : -1
     }
     if (a.avgWait !== b.avgWait) return b.avgWait - a.avgWait
-    return a.location.localeCompare(b.location)
+    return a.location.localeCompare(b.location, 'en', { sensitivity: 'base' })
   })
 }
 

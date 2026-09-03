@@ -35,6 +35,7 @@ export type ParseError = {
 }
 
 export type WarningCode =
+  | 'raggedRow'
   | 'missingVisitId'
   | 'missingVisitDate'
   | 'invalidVisitDate'
@@ -54,7 +55,11 @@ export type WarningKind = 'skipped' | 'normalized' | 'info'
 export type WarningExample = {
   /** Data-row number, where row 1 is the first row after the header (D20). */
   row: number
-  /** The offending cell, never a patient hash (AC-12). */
+  /**
+   * The offending cell contents, or, for structural warnings like `raggedRow`
+   * where the cells cannot be trusted to align with any field, a descriptive
+   * string that carries no cell contents. Never a patient hash (AC-12).
+   */
   value?: string
 }
 

@@ -34,6 +34,16 @@ describe('filterByDateRange', () => {
       'K008',
     ])
   })
+
+  it('P12: an inclusive range across a year boundary includes both endpoints', () => {
+    const visits: Visit[] = [
+      { ...FIXTURE_VISITS[0], visitId: 'Y1', visitDate: '2026-12-30' },
+      { ...FIXTURE_VISITS[0], visitId: 'Y2', visitDate: '2026-12-31' },
+      { ...FIXTURE_VISITS[0], visitId: 'Y3', visitDate: '2027-01-01' },
+      { ...FIXTURE_VISITS[0], visitId: 'Y4', visitDate: '2027-01-02' },
+    ]
+    expect(ids(filterByDateRange(visits, '2026-12-31', '2027-01-01'))).toEqual(['Y2', 'Y3'])
+  })
 })
 
 describe('filterByLocation', () => {

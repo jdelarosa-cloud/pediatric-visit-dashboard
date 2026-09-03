@@ -24,6 +24,11 @@ function collapseWhitespace(value: string): string {
   return value.replace(/\s+/g, ' ')
 }
 
+// Plain decimal only (D6): hex (0x1A), exponent notation (1e2), Infinity, and
+// a leading plus sign are all valid input to Number() but are spreadsheet or
+// JS artifacts, not minutes a person entered, so they must not pass silently.
+const PLAIN_DECIMAL_PATTERN = /^-?\d+(\.\d+)?$/
+
 export function normalizeRow(
   cells: string[],
   indexes: ColumnIndexes,
@@ -71,11 +76,11 @@ export function normalizeRow(
   let waitTimeMinutes: number | null = null
   if (rawWait === '') {
     normalizations.push({ code: 'missingWait' })
+  } else if (!PLAIN_DECIMAL_PATTERN.test(rawWait)) {
+    normalizations.push({ code: 'nonnumericWait', value: rawWait })
   } else {
     const parsed = Number(rawWait)
-    if (!Number.isFinite(parsed)) {
-      normalizations.push({ code: 'nonnumericWait', value: rawWait })
-    } else if (parsed < 0) {
+    if (parsed < 0) {
       normalizations.push({ code: 'negativeWait', value: rawWait })
     } else {
       waitTimeMinutes = parsed

@@ -46,6 +46,6 @@ export function locationOptions(visits: readonly Visit[]): string[] {
   return unique.sort((a, b) => {
     if (a === UNKNOWN_LOCATION) return b === UNKNOWN_LOCATION ? 0 : 1
     if (b === UNKNOWN_LOCATION) return -1
-    return a.localeCompare(b)
+    return a.localeCompare(b, 'en', { sensitivity: 'base' })
   })
 }

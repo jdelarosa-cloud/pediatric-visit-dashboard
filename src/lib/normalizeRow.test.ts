@@ -145,12 +145,22 @@ describe('normalizeRow', () => {
     expect(decimal.normalizations).toEqual([])
   })
 
-  it('P8: a non-finite wait such as Infinity is treated as nonnumeric', () => {
+  it('D6: "Infinity" fails the plain-decimal format check and is treated as nonnumeric', () => {
     const result = normalizeRow(withCell(5, 'Infinity'), INDEXES, 14)
     expect(result.kind).toBe('accepted')
     if (result.kind !== 'accepted') return
     expect(result.visit.waitTimeMinutes).toBeNull()
     expect(result.normalizations).toEqual([{ code: 'nonnumericWait', value: 'Infinity' }])
+  })
+
+  it('D6: hex, exponent, and leading-plus wait strings all fail the plain-decimal format check', () => {
+    for (const value of ['0x1A', '1e2', '+5']) {
+      const result = normalizeRow(withCell(5, value), INDEXES, 14)
+      expect(result.kind).toBe('accepted')
+      if (result.kind !== 'accepted') continue
+      expect(result.visit.waitTimeMinutes).toBeNull()
+      expect(result.normalizations).toEqual([{ code: 'nonnumericWait', value }])
+    }
   })
 
   it('P10: blank patient_id_hashed becomes "Unknown patient"', () => {

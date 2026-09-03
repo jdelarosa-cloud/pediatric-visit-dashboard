@@ -26,3 +26,9 @@ dist-ssr
 # Ultra-orchestration run artifacts (plan, build log, findings, verdicts).
 # Kept out of history; a curated summary goes into docs/ at the end.
 .pipeline/
+
+# Real patient exports must never be committed (council iteration 1, D1).
+# Only the tracked synthetic samples are exempt from this rule.
+*.csv
+!public/samples/*.csv
+!public/sample-visits.csv
