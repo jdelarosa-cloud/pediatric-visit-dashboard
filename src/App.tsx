@@ -4,10 +4,13 @@ import { DataQualitySummary } from './components/DataQualitySummary.tsx'
 import { DataSourcePanel } from './components/DataSourcePanel.tsx'
 import { FilterBar } from './components/FilterBar.tsx'
 import { KpiCards } from './components/KpiCards.tsx'
+import { MethodologyFooter } from './components/MethodologyFooter.tsx'
 import { StatusBanner } from './components/StatusBanner.tsx'
 import { TopReasonsList } from './components/TopReasonsList.tsx'
 import { VisitPreviewTable } from './components/VisitPreviewTable.tsx'
 import { WaitByLocationChart } from './components/WaitByLocationChart.tsx'
+import { WeatherContextCard } from './components/WeatherContextCard.tsx'
+import { useWeatherContext } from './hooks/useWeatherContext.ts'
 import { useVisitsLoader } from './hooks/useVisitsLoader.ts'
 import { applyFilters, DEFAULT_FILTERS, locationOptions } from './lib/filters.ts'
 import { computeKpis } from './lib/kpis.ts'
@@ -25,6 +28,13 @@ function App() {
   const filteredVisits = useMemo(() => applyFilters(visits, filters), [filters, visits])
   const kpis = useMemo(() => computeKpis(filteredVisits), [filteredVisits])
   const locations = useMemo(() => locationOptions(visits), [visits])
+  const weather = useWeatherContext({
+    location: filters.location,
+    startDate: filters.startDate,
+    endDate: filters.endDate,
+    visits: filteredVisits,
+  })
+  const kpiAnimationKey = `${kpis.totalVisits}:${kpis.overallAvgWait ?? 'none'}:${kpis.locationCount}:${kpis.visitsWithoutWait}`
 
   function handleFile(file: File) {
     setFilters(DEFAULT_FILTERS)
@@ -72,7 +82,7 @@ function App() {
         )}
 
         {data !== null && (
-          <>
+          <div className={styles.dashboard}>
             <section aria-labelledby="overview-heading" className={styles.overview}>
               <div className={styles.overviewHeader}>
                 <div className={styles.overviewCopy}>
@@ -101,7 +111,7 @@ function App() {
                   />
                 </div>
               </div>
-              <KpiCards kpis={kpis} />
+              <KpiCards key={kpiAnimationKey} kpis={kpis} />
             </section>
 
             <div aria-label="Visit analysis" className={styles.analysisGrid}>
@@ -116,8 +126,10 @@ function App() {
                 warnings={data.outcome.warnings}
               />
               <VisitPreviewTable visits={filteredVisits} />
+              <WeatherContextCard state={weather} />
+              <MethodologyFooter />
             </div>
-          </>
+          </div>
         )}
 
         <p aria-live="polite" className="visually-hidden">

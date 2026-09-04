@@ -3,6 +3,12 @@
   gap: 18px;
 }
 
+.dashboard {
+  display: grid;
+  gap: 18px;
+  animation: dashboard-in 340ms ease-out both;
+}
+
 .overview {
   display: grid;
   gap: 12px;
@@ -64,7 +70,37 @@
   display: grid;
   align-items: stretch;
   grid-template-columns: minmax(300px, 4fr) minmax(0, 8fr);
+  grid-template-areas:
+    'quality table'
+    'weather methodology';
   gap: 18px;
+}
+
+.lowerGrid > :nth-child(1) {
+  grid-area: quality;
+}
+
+.lowerGrid > :nth-child(2) {
+  grid-area: table;
+}
+
+.lowerGrid > :nth-child(3) {
+  grid-area: weather;
+}
+
+.lowerGrid > :nth-child(4) {
+  grid-area: methodology;
+}
+
+@keyframes dashboard-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (max-width: 1099px) {
@@ -87,12 +123,21 @@
 
   .lowerGrid {
     grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'quality'
+      'table'
+      'weather'
+      'methodology';
     gap: 12px;
   }
 }
 
 @media (max-width: 719px) {
   .main {
+    gap: var(--space-3);
+  }
+
+  .dashboard {
     gap: var(--space-3);
   }
 

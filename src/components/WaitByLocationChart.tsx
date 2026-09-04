@@ -8,6 +8,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
+import { usePrefersReducedMotion } from '../hooks/usePrefersReducedMotion.ts'
 import type { LocationWaitStat } from '../lib/types.ts'
 import styles from './AnalysisCard.module.css'
 
@@ -76,6 +77,7 @@ function WaitDataTable({ stats }: { stats: LocationWaitStat[] }) {
 }
 
 export function WaitByLocationChart({ stats, onReset }: WaitByLocationChartProps) {
+  const prefersReducedMotion = usePrefersReducedMotion()
   const recordedStats = stats.filter((stat) => stat.avgWait !== null)
   const noWaitLocations = stats
     .filter((stat) => stat.avgWait === null)
@@ -159,7 +161,7 @@ export function WaitByLocationChart({ stats, onReset }: WaitByLocationChartProps
             margin={{ top: 2, right: 68, bottom: 0, left: 0 }}
             role="img"
           >
-            <CartesianGrid horizontal={false} stroke="#e4e9f0" />
+            <CartesianGrid horizontal={false} stroke="var(--border)" />
             <XAxis
               axisLine={false}
               dataKey="displayWait"
@@ -173,22 +175,24 @@ export function WaitByLocationChart({ stats, onReset }: WaitByLocationChartProps
               axisLine={false}
               dataKey="location"
               interval={0}
-              tick={{ fill: '#0f2440', fontSize: 12, fontWeight: 600 }}
+              tick={{ fill: 'var(--ink)', fontSize: 12, fontWeight: 600 }}
               tickLine={false}
               type="category"
               width={120}
             />
-            <Tooltip content={<WaitTooltip />} cursor={{ fill: '#f6f8fb' }} />
+            <Tooltip content={<WaitTooltip />} cursor={{ fill: 'var(--surface-subtle)' }} />
             <Bar
+              animationDuration={300}
+              animationEasing="ease-out"
               barSize={20}
               dataKey="displayWait"
-              fill="#1e6fd9"
-              isAnimationActive={false}
+              fill="var(--primary)"
+              isAnimationActive={!prefersReducedMotion}
               radius={[0, 4, 4, 0]}
             >
               <LabelList
                 dataKey="valueLabel"
-                fill="#0f2440"
+                fill="var(--ink)"
                 fontSize={12}
                 fontWeight={600}
                 position="right"

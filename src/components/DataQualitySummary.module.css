@@ -97,7 +97,7 @@
 }
 
 .details summary {
-  min-height: 42px;
+  min-height: 44px;
   padding-block: 10px;
   color: var(--primary-text);
   font-weight: 600;
@@ -109,6 +109,18 @@
   gap: 10px;
   padding: 2px 0 8px;
   list-style: none;
+  animation: quality-details-in 180ms ease-out both;
+}
+
+@keyframes quality-details-in {
+  from {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .warningList li {

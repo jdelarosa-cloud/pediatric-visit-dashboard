@@ -30,10 +30,11 @@ export function VisitPreviewTable({ visits }: { visits: readonly Visit[] }) {
         </div>
       ) : (
         <>
-          <p className={styles.scrollNote}>Swipe horizontally to see all seven columns.</p>
+          <p className={styles.scrollNote}>Scroll horizontally to see all seven columns.</p>
           <div
             aria-label="Scrollable visit preview table"
             className={styles.tableScroll}
+            role="region"
             tabIndex={0}
           >
             <table>

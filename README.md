@@ -1,26 +1,25 @@
 # Pediatric Visit Dashboard
 
-A browser-only React application that reads a CSV of pediatric visits and turns it into three KPIs: total visits, average wait time by location, and the top three visit reasons. Filters recalculate the KPIs, a data-quality summary explains every row that was skipped or adjusted, and an optional weather card adds daily weather context for a selected location. Nothing leaves the browser except a place name, coordinates, and a date range sent to a free weather API.
+A browser-only React application that turns a pediatric visit CSV into a compact, one-page review of volume, wait times, locations, data coverage, and common visit reasons. Filters recalculate every metric and chart, a data-quality summary explains skipped or adjusted rows, and an optional weather card adds daily context for one selected location. Nothing leaves the browser except a place name, coordinates, and a date range sent to a free weather API.
 
 This is a take-home exercise, not a production system. See "Known limitations" and "What I would improve for production" before relying on it for anything real.
 
+![Loaded Pediatric Visit Dashboard showing overview metrics, charts, data quality, visit preview, weather context, and methodology](docs/dashboard.png)
+
 ## Features
 
-Implemented and tested today:
+Implemented and tested:
 
+- A responsive product interface with a compact overview, accessible controls, explicit empty states, and no raw parser output
+- Drag-and-drop or browse upload, one-click demo data, and downloadable sample files
 - CSV parsing with explicit, documented rules for every kind of bad or missing value
 - Whole-file rejection with an actionable message when the file is empty, has no data rows, or is missing required columns
 - A warning summary, one line per problem category, with capped row examples instead of hundreds of individual messages
 - Pure filter functions: inclusive date range, single location, minimum wait time
-- Pure KPI functions: total visits, average wait by location, top three reasons with a deterministic tie-break
+- Pure KPI functions: total visits, overall and location wait averages, distinct locations, wait coverage, and top three reasons with a deterministic tie-break
+- A horizontal wait-time chart with a data-table alternative, a ranked reasons chart, and a 25-row visit preview with masked patient identifiers
 - Weather context from Open-Meteo for one selected location and the visible date range, with cancellation, caching, and ten explicit states
-- 127 unit tests on the data and weather logic, run in Node with no browser simulation
-
-In progress (next phases of work):
-
-- The upload panel with drag-and-drop, "Load sample data", and a downloadable sample CSV
-- The dashboard views: KPI cards, the average-wait chart, the ranked reasons list, the filtered preview table, and the data-quality panel
-- Until those land, the application mounts a temporary harness at `src/dev/ParserHarness.tsx` that exposes the parser, the filters, and the weather card for manual testing
+- 134 unit tests on the data and weather logic, run in Node with no browser simulation
 
 ## Technical stack
 
@@ -29,10 +28,11 @@ In progress (next phases of work):
 | UI | React 19 with TypeScript 6 | Required by the exercise; TypeScript makes "a wait can be null" a compiler-checked fact |
 | Build and dev server | Vite 8 | `npm run dev` with hot reload and zero configuration for CSS Modules |
 | CSV parsing | Papa Parse 5 | Correct handling of quoted commas, embedded newlines, byte order marks, and delimiter detection |
-| Charts | Recharts 3 | Installed for the dashboard phase; not yet imported, so it adds nothing to the bundle today |
+| Charts | Recharts 3 | Renders the responsive horizontal wait chart and its accessible chart layer |
 | Tests | Vitest 5 | Shares the Vite configuration, so tests run TypeScript with no extra setup |
 | Lint | oxlint | Ships with the Vite template; `no-console` is set to error |
 | Styling | Plain CSS with custom properties, CSS Modules for components | No framework needed for one page |
+| Fonts | Manrope and Source Sans 3 via Google Fonts | Readable heading and body faces without a package |
 
 Deliberately absent: state libraries, routers, a backend, a database, authentication, date libraries, fetch wrappers, schema validators, UI kits.
 
@@ -54,7 +54,19 @@ npm install
 npm run dev
 ```
 
-Open the URL printed in the terminal, normally http://localhost:5173. The temporary harness lets you choose a CSV, load one of the three sample files, and exercise the location and date filters with the weather card.
+Open the URL printed in the terminal, normally http://localhost:5173. Start with the built-in demo or load a CSV from the upload panel; the dashboard appears on the same page.
+
+## Using the dashboard
+
+1. Select **Load Demo Data** for a safe walkthrough, or choose **Browse Files** to load your own CSV. Drag-and-drop works anywhere inside the upload panel.
+2. Read **Overview** first. Its four cards show matching visits, the average recorded wait, represented locations, and wait-time coverage.
+3. Use the file-name and **Filters** buttons beside the Overview title to replace the file or narrow by location, inclusive dates, and minimum wait. Changes apply immediately; **Reset filters** restores the full dataset.
+4. Compare locations in **Average Wait by Location** and review the three most common visit reasons. The wait chart includes an expandable data-table alternative.
+5. Review **Data Quality** before drawing conclusions. Adjusted rows remain in the dashboard; skipped rows do not. Expand the details for counts and example row numbers.
+6. Use **Visit Preview** to spot-check the filtered records. Patient identifiers show only their final three characters, and a wide table scrolls inside its card on a small screen.
+7. Select one real location to load **Weather Context** for the visible visit dates. Weather is secondary context and never a claim about what caused a visit pattern.
+
+The dashboard remains useful if weather is slow or unavailable. Weather loading never blocks filters, KPIs, charts, or the visit table.
 
 ## Tests
 
@@ -63,7 +75,7 @@ npm test            # run once
 npm run test:watch  # rerun on change
 ```
 
-Tests live beside the modules they cover under `src/lib` and use two hardcoded eight-row fixtures. They never import React or touch the DOM.
+Tests live beside the modules they cover under `src/lib`. They use hardcoded fixtures, never import React, and never touch the DOM. Browser behavior is checked separately against the running application at the documented responsive widths.
 
 ## Lint
 
@@ -79,6 +91,22 @@ oxlint prints nothing on success. Add `-- --format=default` to see the file and 
 npm run build     # type-check with tsc, then bundle into dist/
 npm run preview   # serve the built bundle locally
 ```
+
+## Project structure
+
+```text
+src/
+  components/   product UI and colocated CSS Modules
+  hooks/        visit-file loading and weather request state
+  lib/          pure parsing, normalization, filtering, KPI, date, and weather logic
+public/
+  sample-visits.csv   primary synthetic demo file
+  samples/            focused clean and error-state samples
+docs/
+  ai-workflow.md      AI collaboration and verification record
+```
+
+`App.tsx` owns the loaded result and filters. Display values are derived through tested functions in `src/lib`; components do not parse files or calculate KPIs.
 
 ## CSV schema
 
@@ -146,6 +174,9 @@ The parse result reports total rows, accepted rows, skipped rows, and normalized
 ## KPI definitions
 
 - Total visits: the number of accepted visits after filters. Skipped rows never count.
+- Overall average wait: the mean of recorded waits across matching visits, excluding nulls. It shows "Not recorded" when no matching visit has a usable wait.
+- Locations: the number of distinct location values represented in the filtered visit set, including the explicit `Unknown` placeholder when present.
+- Recorded waits: a count and coverage percentage showing how many matching visits have a usable wait value.
 - Average wait by location: the mean of recorded waits at each location, excluding nulls. Zero is a real wait and counts. A location with no recorded waits shows no average rather than zero. Locations sort by average descending, with no-data locations last.
 - Top three visit reasons: reasons grouped after trimming and case-folding, sorted by count descending, then alphabetically for ties. The first spelling seen is displayed.
 
@@ -169,7 +200,7 @@ Rules:
 - Changes are debounced for 300 ms. An in-flight request is aborted when the selection changes, and a response is discarded if its request key no longer matches the current selection.
 - Successful responses are cached in memory for the session, keyed by request URL. Failures are never cached. Nothing is written to storage.
 
-The card shows average temperature, total precipitation, and rainy days over the span, with the sentence "Shown for context only. Weather does not explain changes in visits or wait times." It reports weather on the same days as the visits and makes no causal claim.
+The card shows average temperature, total precipitation, and rainy days over the span, with the sentence "Context only—weather does not explain changes in visits or wait times." It reports weather on the same days as the visits and makes no causal claim.
 
 ## API failure behavior
 
@@ -177,7 +208,7 @@ Every outcome is a distinct state with plain copy: waiting for a single location
 
 ## Privacy decision
 
-Patient and provider data never leave the browser. The only outbound requests are the two weather calls, and they carry a place name, latitude and longitude, dates, variable names, and units. A unit test parses a real CSV, builds every URL the app can build from it, and asserts that no visit id, patient hash, or provider id appears in any of them. Warning examples never include a patient hash. The lint configuration makes any `console` call a build failure, so nothing can be logged. No analytics, no storage, no cookies.
+Patient and provider data never leave the browser. The only outbound requests are the two weather calls, and they carry a place name, latitude and longitude, dates, variable names, and units. A unit test parses a real CSV, builds every URL the app can build from it, and asserts that no visit id, patient hash, or provider id appears in any of them. Warning examples never include a patient hash. The lint configuration makes any `console` call a build failure, so nothing can be logged. No analytics, no storage, no cookies. The page also loads two font families from Google Fonts on first load; that request carries no dashboard data, only the visitor's IP address and browser identity, the same as any web font. Self-hosting the fonts is a planned improvement.
 
 ## Assumptions
 
@@ -187,6 +218,7 @@ Patient and provider data never leave the browser. The only outbound requests ar
 - A blank threshold means no wait filtering, and zero is a meaningful threshold.
 - "Today" is the browser's local date.
 - Sample cities are plausible locations for a pediatric urgent-care chain in the Mid-Atlantic and were not verified against any real site list.
+- Fonts load from Google Fonts with a system-font fallback; no dashboard data is involved in that request.
 
 ## Tradeoffs
 
@@ -198,16 +230,17 @@ Patient and provider data never leave the browser. The only outbound requests ar
 
 ## Known limitations
 
-- The upload panel and dashboard views are not built yet. The current interface is a manual test harness.
 - Parsing is synchronous. Files of a few thousand rows are instant; very large files will pause the page while parsing.
 - Weather requests have no timeout. A connection that hangs rather than fails leaves the card in its loading state until the selection changes.
 - A row with two compensating defects, such as an unquoted comma plus a missing field, keeps the expected cell count and cannot be detected by any count check. The weather URL test guards the one place such a value could leave the browser.
+- Recharts makes the minified initial JavaScript bundle about 622 kB (about 186 kB compressed), which triggers Vite's advisory chunk-size warning.
 - Light theme only. Dark mode renders the light palette.
 - Location matching for Washington, DC may fall back to the API's first result if its region is spelled differently than expected.
 
 ## What I would improve for production
 
 - Move parsing to a Web Worker and stream large files.
+- Lazy-load the wait chart or replace the single-series chart with a smaller implementation if initial-load performance becomes important.
 - Add a request timeout and a retry control on the weather card, and a same-day join of daily visits with daily weather so the context is on one axis.
 - Add end-to-end tests for the browser flows that unit tests cannot cover, and a CI workflow running lint, tests, and build on every change.
 - Tolerate trailing empty cells if real exports prove they are common, with a test pinning the decision.
@@ -216,7 +249,7 @@ Patient and provider data never leave the browser. The only outbound requests ar
 
 ## AI-assisted development and how the output was verified
 
-AI use was encouraged by the exercise. I used Claude Code as a pair, and I kept the decisions and the verification.
+AI use was encouraged by the exercise. I used an AI coding agent as a pair while retaining approval over scope, visual direction, and commits. A concise record is in [`docs/ai-workflow.md`](docs/ai-workflow.md).
 
 How the work was organised:
 
@@ -229,7 +262,7 @@ How the output was verified:
 - Every claim of "tests pass" or "build succeeds" was re-run rather than accepted from a report.
 - The completed data layer went through an automated review with five specialist passes, covering leanness, documentation accuracy, test quality, security with a healthcare lens, and a verifier that re-ran every claim in the build log. Two independent reviewers then ruled on the result. The first round was remanded on one real defect: rows with a missing cell were read shifted by position, which could place a patient hash in the location field. That defect was reproduced, fixed with a new rule and tests, and the fix was re-reviewed and approved.
 - The same review caught three claims in a fix log that had been asserted rather than performed, including a justification for removing a numeric guard that was simply false. Those were corrected.
-- I tested the parser myself against several of my own files, and the browser flows were driven with Playwright against the live weather API, including a blocked endpoint to force the failure state and rapid filter changes to prove stale responses are discarded.
+- The live application was exercised through headless Chrome's DevTools Protocol at 1440, 1024, 768, 390, and 360 px. Checks covered horizontal overflow, paired-card heights, native disclosures, live weather success and delayed skeleton behavior, filter updates, and reduced-motion media settings. Playwright was not installed and was not added solely for this manual pass.
 - A manual checklist covers what automation cannot judge: layout at small widths, screen-reader announcements, real spreadsheet exports, and slow networks.
 
 The review logs are kept locally and are not committed.

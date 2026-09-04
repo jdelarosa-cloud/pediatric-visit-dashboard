@@ -161,7 +161,7 @@
 }
 
 .requiredColumns summary {
-  min-height: 40px;
+  min-height: 44px;
   padding-block: 9px;
   color: var(--primary-text);
   font-weight: 600;
