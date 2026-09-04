@@ -12,7 +12,7 @@ This project was built with an AI coding agent under human review. The agent acc
 
 ## How outputs were checked
 
-Pure data behavior is covered by 146 Vitest tests under `src/lib`. The suite includes malformed CSVs, deterministic ordering, null wait handling, filters, KPI calculations, weather range and summary rules, Open-Meteo URL construction, and privacy-first weather egress checks. Regressions cover inherited object keys, an allowed-shape query that collides with an identifier elsewhere in the full accepted dataset, and the exact compensating malformed row that shifts `patient-secret-900` into `location`; each proves the local gate prevents a geocoding URL from being built. A separate positive assertion proves the allowed request path actually builds a URL. Live API responses are exercised separately in the browser rather than claimed as unit-test coverage.
+Pure data behavior is covered by 148 Vitest tests under `src/lib`. The suite includes malformed CSVs, deterministic ordering, null wait handling, filters, KPI calculations, weather range and summary rules, Open-Meteo URL construction, and privacy-first weather egress checks. Regressions cover inherited object keys, an allowed-shape query that collides with an identifier elsewhere in the full accepted dataset, and the exact compensating malformed row that shifts `patient-secret-900` into `location`; each proves the local gate prevents a geocoding URL from being built. A separate positive assertion proves the allowed request path actually builds a URL. Live API responses are exercised separately in the browser rather than claimed as unit-test coverage.
 
 Every phase was checked with the real project commands:
 
