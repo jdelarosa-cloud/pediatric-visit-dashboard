@@ -33,6 +33,7 @@ function App() {
     startDate: filters.startDate,
     endDate: filters.endDate,
     visits: filteredVisits,
+    allVisits: visits,
   })
   const kpiAnimationKey = `${kpis.totalVisits}:${kpis.overallAvgWait ?? 'none'}:${kpis.locationCount}:${kpis.visitsWithoutWait}`
 

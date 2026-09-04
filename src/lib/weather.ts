@@ -137,10 +137,9 @@ export function parseLocationQuery(location: string): LocationQuery {
 
   const head = trimmed.slice(0, lastComma).trim()
   const tail = trimmed.slice(lastComma + 1).trim().toLowerCase()
-  const stateHint = US_STATES[tail]
-  // An unrecognised tail is kept in the query: "Zurich, CH" is a real place
-  // name that geocodes fine, while stripping the tail could resolve a
-  // different "Zurich" entirely (D14).
+  const stateHint = Object.hasOwn(US_STATES, tail) ? US_STATES[tail] : undefined
+  // The lower-level parser preserves an unrecognised tail instead of silently
+  // changing its meaning; the automatic-egress gate rejects it below.
   if (stateHint === undefined || head === '') return { query: trimmed, stateHint: null }
   return { query: head, stateHint }
 }
@@ -149,9 +148,14 @@ export function parseLocationQuery(location: string): LocationQuery {
  * Automatic weather lookup is deliberately narrower than display/grouping:
  * only a short, text-only city followed by a recognized US state may leave
  * the browser. Ambiguous CSV cells stay local even if row defects preserved
- * the expected column count and shifted an identifier into `location`.
+ * the expected column count and shifted an identifier into `location`; a
+ * valid-looking query also stays local when it matches any identifier from
+ * the full accepted dataset.
  */
-export function safeWeatherLocationQuery(location: string): LocationQuery | null {
+export function safeWeatherLocationQuery(
+  location: string,
+  allVisits: readonly Visit[],
+): LocationQuery | null {
   const parsed = parseLocationQuery(location)
   if (
     parsed.stateHint === null ||
@@ -161,6 +165,13 @@ export function safeWeatherLocationQuery(location: string): LocationQuery | null
   ) {
     return null
   }
+  const foldedQuery = parsed.query.toLocaleLowerCase('en-US')
+  const collidesWithIdentifier = allVisits.some((visit) =>
+    [visit.patientIdHashed, visit.visitId, visit.providerId].some(
+      (identifier) => identifier.trim().toLocaleLowerCase('en-US') === foldedQuery,
+    ),
+  )
+  if (collidesWithIdentifier) return null
   return parsed
 }
 
@@ -255,10 +266,13 @@ export function weatherRequestKey(
   return `${location}|${range.start}|${range.end}`
 }
 
-export function weatherGate(location: string | null): 'all' | 'unknown' | 'invalid' | 'ok' {
+export function weatherGate(
+  location: string | null,
+  allVisits: readonly Visit[],
+): 'all' | 'unknown' | 'invalid' | 'ok' {
   if (location === null || location.trim() === '') return 'all'
   // D8 folds every spelling of the placeholder, so a case-insensitive check
   // covers any "unknown" that reached the filter (D14: never geocoded).
   if (location.trim().toLowerCase() === UNKNOWN_LOCATION.toLowerCase()) return 'unknown'
-  return safeWeatherLocationQuery(location) === null ? 'invalid' : 'ok'
+  return safeWeatherLocationQuery(location, allVisits) === null ? 'invalid' : 'ok'
 }

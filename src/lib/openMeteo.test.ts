@@ -59,7 +59,7 @@ describe('AC-12/CF-6 privacy: URLs built from a parsed file carry no identifiers
 
     const urls: string[] = []
     for (const visit of outcome.visits) {
-      const locationQuery = safeWeatherLocationQuery(visit.location)
+      const locationQuery = safeWeatherLocationQuery(visit.location, outcome.visits)
       if (locationQuery === null) continue
       const { query } = locationQuery
       urls.push(buildGeocodeUrl(query))
@@ -85,6 +85,8 @@ describe('AC-12/CF-6 privacy: URLs built from a parsed file carry no identifiers
     expect(identifiers).toContain('h-001')
     expect(identifiers).toContain('V001')
     expect(identifiers).toContain('DR1')
+    expect(urls.length).toBeGreaterThan(0)
+    expect(urls.some((url) => new URL(url).host === 'geocoding-api.open-meteo.com')).toBe(true)
 
     for (const url of urls) {
       for (const identifier of identifiers) {
@@ -104,11 +106,58 @@ Ear,pain,patient-secret-900,V900,2026-07-01,20,DR9`
     expect(malformedOutcome.visits).toHaveLength(1)
     expect(malformedOutcome.visits[0]?.location).toBe('patient-secret-900')
 
-    const locationQuery = safeWeatherLocationQuery(malformedOutcome.visits[0]?.location ?? '')
+    const locationQuery = safeWeatherLocationQuery(
+      malformedOutcome.visits[0]?.location ?? '',
+      malformedOutcome.visits,
+    )
     const geocodeUrl = locationQuery === null ? null : buildGeocodeUrl(locationQuery.query)
 
     expect(locationQuery).toBeNull()
     expect(geocodeUrl).toBeNull()
     expect(String(geocodeUrl)).not.toContain('patient-secret-900')
+  })
+
+  it('AC-12: inherited state keys cannot create a geocode URL', () => {
+    for (const location of ['patient-secret, __proto__', 'patient-secret, constructor']) {
+      const locationQuery = safeWeatherLocationQuery(location, [])
+      const geocodeUrl = locationQuery === null ? null : buildGeocodeUrl(locationQuery.query)
+      expect(locationQuery).toBeNull()
+      expect(geocodeUrl).toBeNull()
+    }
+  })
+
+  it('AC-12/CF-6: a grammar-valid identifier collision cannot create a geocode URL', () => {
+    const collisionCsv = `visit_id,patient_id_hashed,location,visit_date,visit_reason,wait_time_minutes,provider_id
+V901,deadbeefcafebabefeedface,"Bethesda, MD",2026-07-01,Fever,20,DR1
+V902,h-safe,"deadbeefcafebabefeedface, MD",2026-07-02,Cough,15,DR2`
+    const collisionOutcome = parseVisitsCsv(collisionCsv, 'allowed-shape-collision.csv')
+
+    expect(collisionOutcome.ok).toBe(true)
+    if (!collisionOutcome.ok) return
+    expect(collisionOutcome.visits).toHaveLength(2)
+    const collisionLocation = collisionOutcome.visits[1]?.location ?? ''
+    const filteredLocationRows = collisionOutcome.visits.slice(1)
+    expect(safeWeatherLocationQuery(collisionLocation, filteredLocationRows)).not.toBeNull()
+    const locationQuery = safeWeatherLocationQuery(collisionLocation, collisionOutcome.visits)
+    const geocodeUrl = locationQuery === null ? null : buildGeocodeUrl(locationQuery.query)
+
+    expect(collisionLocation).toBe('deadbeefcafebabefeedface, MD')
+    expect(locationQuery).toBeNull()
+    expect(geocodeUrl).toBeNull()
+  })
+
+  it('AC-12: an allowed location with no identifier collision builds a real geocode URL', () => {
+    const allowedCsv = `visit_id,patient_id_hashed,location,visit_date,visit_reason,wait_time_minutes,provider_id
+V903,h-safe,"Bethesda, MD",2026-07-01,Fever,20,DR1`
+    const allowedOutcome = parseVisitsCsv(allowedCsv, 'allowed-location.csv')
+
+    expect(allowedOutcome.ok).toBe(true)
+    if (!allowedOutcome.ok) return
+    const locationQuery = safeWeatherLocationQuery('Bethesda, MD', allowedOutcome.visits)
+
+    expect(locationQuery).toEqual({ query: 'Bethesda', stateHint: 'Maryland' })
+    const geocodeUrl = new URL(buildGeocodeUrl(locationQuery?.query ?? ''))
+    expect(geocodeUrl.host).toBe('geocoding-api.open-meteo.com')
+    expect(geocodeUrl.searchParams.get('name')).toBe('Bethesda')
   })
 })

@@ -193,37 +193,64 @@ describe('summarizeDailyWeather', () => {
 
 describe('weatherGate', () => {
   it('D14/AC-11: weather is requested only for a single non-placeholder location', () => {
-    expect(weatherGate(null)).toBe('all')
-    expect(weatherGate('Unknown')).toBe('unknown')
-    expect(weatherGate('Bethesda, MD')).toBe('ok')
+    expect(weatherGate(null, FIXTURE_VISITS)).toBe('all')
+    expect(weatherGate('Unknown', FIXTURE_VISITS)).toBe('unknown')
+    expect(weatherGate('Bethesda, MD', FIXTURE_VISITS)).toBe('ok')
   })
 
   it('AC-12: ambiguous or unsafe location text remains local', () => {
-    expect(weatherGate('Bethesda')).toBe('invalid')
-    expect(weatherGate('Zurich, CH')).toBe('invalid')
-    expect(weatherGate('patient-secret-900')).toBe('invalid')
-    expect(weatherGate('Clinic 12, MD')).toBe('invalid')
+    expect(weatherGate('Bethesda', FIXTURE_VISITS)).toBe('invalid')
+    expect(weatherGate('Zurich, CH', FIXTURE_VISITS)).toBe('invalid')
+    expect(weatherGate('patient-secret-900', FIXTURE_VISITS)).toBe('invalid')
+    expect(weatherGate('Clinic 12, MD', FIXTURE_VISITS)).toBe('invalid')
+  })
+
+  it('AC-12: inherited object keys cannot masquerade as recognized states', () => {
+    expect(weatherGate('patient-secret, __proto__', FIXTURE_VISITS)).toBe('invalid')
+    expect(weatherGate('patient-secret, constructor', FIXTURE_VISITS)).toBe('invalid')
   })
 })
 
 describe('safeWeatherLocationQuery', () => {
   it('AC-12: accepts a text-only city with either a recognized abbreviation or state name', () => {
-    expect(safeWeatherLocationQuery("St. Mary's, MD")).toEqual({
+    expect(safeWeatherLocationQuery("St. Mary's, MD", FIXTURE_VISITS)).toEqual({
       query: "St. Mary's",
       stateHint: 'Maryland',
     })
-    expect(safeWeatherLocationQuery('Forest Hills, New York')).toEqual({
+    expect(safeWeatherLocationQuery('Forest Hills, New York', FIXTURE_VISITS)).toEqual({
       query: 'Forest Hills',
       stateHint: 'New York',
     })
   })
 
   it('AC-12: rejects missing, foreign, unrecognized, numeric, and overlong state-qualified places', () => {
-    expect(safeWeatherLocationQuery('Bethesda')).toBeNull()
-    expect(safeWeatherLocationQuery('Zurich, CH')).toBeNull()
-    expect(safeWeatherLocationQuery('Bethesda, ZZ')).toBeNull()
-    expect(safeWeatherLocationQuery('Clinic 12, MD')).toBeNull()
-    expect(safeWeatherLocationQuery(`${'A'.repeat(81)}, MD`)).toBeNull()
+    expect(safeWeatherLocationQuery('Bethesda', FIXTURE_VISITS)).toBeNull()
+    expect(safeWeatherLocationQuery('Zurich, CH', FIXTURE_VISITS)).toBeNull()
+    expect(safeWeatherLocationQuery('Bethesda, ZZ', FIXTURE_VISITS)).toBeNull()
+    expect(safeWeatherLocationQuery('Clinic 12, MD', FIXTURE_VISITS)).toBeNull()
+    expect(safeWeatherLocationQuery(`${'A'.repeat(81)}, MD`, FIXTURE_VISITS)).toBeNull()
+  })
+
+  it('AC-12: rejects inherited state keys before they can create a safe query', () => {
+    expect(safeWeatherLocationQuery('patient-secret, __proto__', FIXTURE_VISITS)).toBeNull()
+    expect(safeWeatherLocationQuery('patient-secret, constructor', FIXTURE_VISITS)).toBeNull()
+  })
+
+  it('AC-12: rejects a valid place-shaped query that collides with any accepted identifier field', () => {
+    const collisionVisits: Visit[] = [
+      {
+        ...FIXTURE_VISITS[0],
+        patientIdHashed: 'deadbeefcafebabefeedface',
+        visitId: 'visitsecret',
+        providerId: 'providersecret',
+      },
+    ]
+    expect(
+      safeWeatherLocationQuery('deadbeefcafebabefeedface, MD', collisionVisits),
+    ).toBeNull()
+    expect(safeWeatherLocationQuery('visitsecret, MD', collisionVisits)).toBeNull()
+    expect(safeWeatherLocationQuery('ProviderSecret, MD', collisionVisits)).toBeNull()
+    expect(weatherGate('deadbeefcafebabefeedface, MD', collisionVisits)).toBe('invalid')
   })
 })
 

@@ -44,6 +44,8 @@ export type WeatherContextInput = {
   startDate: string | null
   endDate: string | null
   visits: readonly Visit[]
+  /** Full accepted dataset: identifier collisions must not disappear when filters narrow. */
+  allVisits: readonly Visit[]
 }
 
 export function useWeatherContext({
@@ -51,11 +53,13 @@ export function useWeatherContext({
   startDate,
   endDate,
   visits,
+  allVisits,
 }: WeatherContextInput): WeatherState {
   const [result, setResult] = useState<{ key: string; state: WeatherState } | null>(null)
 
-  const gate = weatherGate(location)
-  const locationQuery = location === null ? null : safeWeatherLocationQuery(location)
+  const gate = weatherGate(location, allVisits)
+  const locationQuery =
+    location === null ? null : safeWeatherLocationQuery(location, allVisits)
   const query = locationQuery?.query ?? null
   const stateHint = locationQuery?.stateHint ?? null
   const range = effectiveWeatherRange({ startDate, endDate, visits, today: todayIso() })

@@ -19,7 +19,7 @@ Implemented and tested:
 - Pure KPI functions: total visits, overall and location wait averages, distinct locations, wait coverage, and top three reasons with a deterministic tie-break
 - A horizontal wait-time chart with a data-table alternative, a ranked reasons chart, and a 25-row visit preview with masked patient identifiers
 - Weather context from Open-Meteo for one selected, policy-approved U.S. location and the visible date range, with cancellation, caching, and explicit states
-- 140 unit tests on the data and weather logic, run in Node with no browser simulation
+- 146 unit tests on the data and weather logic, run in Node with no browser simulation
 
 ## Technical stack
 
@@ -193,7 +193,7 @@ Why weather, and why this provider: pediatric urgent-care demand is plausibly we
 
 Rules:
 
-- A request is made only when exactly one location passes the privacy-first egress policy: a text-only city followed by a recognized U.S. state name or abbreviation, such as `Bethesda, MD`. "All locations", `Unknown`, bare cities, foreign or unrecognized state suffixes, digits, and overlong place values never trigger a request, and the card says why.
+- A request is made only when exactly one location passes the privacy-first egress policy: a text-only city followed by a recognized U.S. state name or abbreviation, such as `Bethesda, MD`. The city query is then compared case-insensitively with every patient hash, visit ID, and provider ID in the full accepted dataset; any collision stays local even when filters hide the row containing that identifier. "All locations", `Unknown`, bare cities, foreign or unrecognized state suffixes, digits, overlong place values, and identifier collisions never trigger a request, and the card says why.
 - The date range is the overlap of the date filter and the visible visits, clamped to today because the archive rejects future dates. Ranges entirely in the future or before 1940 are explained without a request.
 - After the egress policy accepts the location, its recognized state suffix is removed from the search text and used to prefer a result in that state. If no returned result has that state, the API's first match is used. The matched place is always displayed so a wrong match is visible.
 - Requested variables are daily mean, maximum, and minimum temperature in Fahrenheit and precipitation in inches.
@@ -204,11 +204,11 @@ The card shows average temperature, total precipitation, and rainy days over the
 
 ## API failure behavior
 
-Every outcome is a distinct state with plain copy: waiting for a single location, unknown location, no visits in range, future range, pre-1940 range, loading, no geocoding match, request failed, empty data, and success. A failed or slow request changes only the weather card. The KPI logic never receives weather data and cannot be affected by it. There is no retry button; the next filter change retries because failures are not cached.
+Every outcome is a distinct state with plain copy: waiting for a single location, unknown location, invalid or unsafe location format, no visits in range, future range, pre-1940 range, loading, no geocoding match, request failed, empty data, and success. A failed or slow request changes only the weather card. The KPI logic never receives weather data and cannot be affected by it. There is no retry button; the next filter change retries because failures are not cached.
 
 ## Privacy decision
 
-Patient and provider data are processed locally and are not inputs to either weather endpoint. The two Open-Meteo calls are the only outbound requests containing dashboard-derived values: a policy-approved place name, latitude and longitude, dates, variable names, and units. Before a geocoding URL can be built, a pure egress gate requires a text-only city and recognized U.S. state; ambiguous values remain local. The privacy regression parses the exact compensating malformed row that shifts `patient-secret-900` into `location` and proves that it cannot produce a geocoding URL. A broader parsed-file test also asserts that no visit id, patient hash, or provider id appears in any URL on the allowed request path. Warning examples never include a patient hash. The lint configuration makes any `console` call a lint failure. No analytics, no storage, no cookies. The page also loads two font families from Google Fonts on first load; those resource requests carry no dashboard data, but they do expose the visitor's IP address and ordinary browser request metadata to Google. Self-hosting the fonts is a planned improvement.
+Patient and provider data are processed locally and are not inputs to either weather endpoint. The two Open-Meteo calls are the only outbound requests containing dashboard-derived values: a policy-approved place name, latitude and longitude, dates, variable names, and units. Before a geocoding URL can be built, a pure egress gate requires a text-only city and recognized U.S. state, uses own-key-only state recognition, and rejects a city query that matches any patient hash, visit ID, or provider ID across the full accepted dataset. Ambiguous and colliding values remain local. Privacy regressions cover inherited-key suffixes, a grammar-valid identifier collision, and the exact compensating malformed row that shifts `patient-secret-900` into `location`; each proves that no geocoding URL is produced. A broader parsed-file test also asserts that no visit id, patient hash, or provider id appears in any URL on a non-vacuous allowed request path. Warning examples never include a patient hash. The lint configuration makes any `console` call a lint failure. No analytics, no storage, no cookies. The page also loads two font families from Google Fonts on first load; those resource requests carry no dashboard data, but they do expose the visitor's IP address and ordinary browser request metadata to Google. Self-hosting the fonts is a planned improvement.
 
 ## Assumptions
 
@@ -232,7 +232,7 @@ Patient and provider data are processed locally and are not inputs to either wea
 
 - Parsing is synchronous. Files of a few thousand rows are instant; very large files will pause the page while parsing.
 - Weather requests have no timeout. A connection that hangs rather than fails leaves the card in its loading state until the selection changes.
-- A row with two compensating defects, such as an unquoted comma plus a missing field, can keep the expected cell count and cannot be detected by a cell-count check. The automatic-weather egress gate therefore treats ambiguous location text as invalid before URL construction; a regression pins the exact displaced-identifier case. Such a row may still distort locally displayed fields, so reviewers should correct malformed source CSVs.
+- A row with two compensating defects, such as an unquoted comma plus a missing field, can keep the expected cell count and cannot be detected by a cell-count check. The automatic-weather egress gate therefore treats ambiguous location text as invalid and rejects valid-looking queries that collide with identifiers from the full dataset before URL construction; regressions pin both cases. Such a row may still distort locally displayed fields, so reviewers should correct malformed source CSVs.
 - Recharts makes the minified initial JavaScript bundle about 622 kB (about 186 kB compressed), which triggers Vite's advisory chunk-size warning.
 - Light theme only. Dark mode renders the light palette.
 - Location matching for Washington, DC may fall back to the API's first result if its region is spelled differently than expected.
