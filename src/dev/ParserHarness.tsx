@@ -14,9 +14,9 @@ const SAMPLES = [
 ]
 
 const panel = {
-  background: 'var(--color-surface)',
-  border: '1px solid var(--color-border)',
-  borderRadius: 'var(--radius)',
+  background: 'var(--surface)',
+  border: '1px solid var(--border)',
+  borderRadius: 'var(--radius-card)',
   marginTop: 'var(--space-3)',
   padding: 'var(--space-3)',
 }
@@ -62,8 +62,8 @@ export function ParserHarness() {
   return (
     <section style={panel}>
       <h2>Parser harness (temporary)</h2>
-      <p>
-        <label htmlFor="harness-file">Choose a visits CSV</label>{' '}
+      <p style={{ display: 'grid', gap: 'var(--space-1)' }}>
+        <label htmlFor="harness-file">Choose a visits CSV</label>
         <input
           id="harness-file"
           type="file"

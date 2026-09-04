@@ -1,16 +1,18 @@
+import { AppHeader } from './components/AppHeader.tsx'
 import { ParserHarness } from './dev/ParserHarness.tsx'
 
 function App() {
   return (
     <div className="app">
-      <header className="app-header">
-        <h1>Pediatric Visit Dashboard</h1>
-        <p>
-          Upload a CSV of pediatric visits to see visit counts, wait times by
-          location, and top visit reasons.
-        </p>
-      </header>
-      <main aria-label="Dashboard">
+      <a className="skip-link" href="#dashboard-content">
+        Skip to dashboard content
+      </a>
+      <AppHeader />
+      <main
+        aria-label="Dashboard"
+        className="page-container app-main"
+        id="dashboard-content"
+      >
         <ParserHarness />
       </main>
     </div>

@@ -1,30 +1,61 @@
 :root {
-  --color-background: #f5f7fa;
-  --color-surface: #ffffff;
-  --color-text: #1a2330;
-  --color-text-muted: #566072;
-  --color-accent: #1b5e9c;
-  --color-success: #1c7a4a;
-  --color-warning: #a2670a;
-  --color-danger: #b3261e;
-  --color-border: #d3dae3;
+  color-scheme: light;
 
-  --space-1: 0.25rem;
-  --space-2: 0.5rem;
-  --space-3: 1rem;
-  --space-4: 2rem;
+  --bg: #eef2f7;
+  --surface: #ffffff;
+  --surface-subtle: #f6f8fb;
+  --ink: #0f2440;
+  --muted: #4f6079;
+  --primary: #1e6fd9;
+  --primary-text: #155cb8;
+  --primary-soft: #e4eefb;
+  --positive: #0b7466;
+  --positive-soft: #dcf3ee;
+  --warning: #8a5a08;
+  --warning-soft: #fbf1dc;
+  --danger: #b3261e;
+  --danger-soft: #fbe9e7;
+  --warm: #9a5310;
+  --warm-soft: #fdeede;
+  --border: #d5dde8;
+  --input-border: #7a8ba3;
+  --skeleton: #e3e9f1;
 
-  --radius: 8px;
+  --font-heading: Manrope, system-ui, sans-serif;
+  --font-body: 'Source Sans 3', system-ui, sans-serif;
+  --text-title: 30px;
+  --text-section: 22px;
+  --text-card: 17px;
+  --text-body: 15px;
+  --text-small: 13px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 16px;
+  --space-4: 24px;
+  --space-5: 32px;
+  --space-6: 40px;
+
+  --radius-control: 8px;
+  --radius-card: 12px;
+  --shadow-rest: 0 1px 2px rgb(15 36 64 / 7%);
+  --shadow-hover: 0 5px 14px rgb(15 36 64 / 10%);
   --content-max-width: 1200px;
 
-  --font-sans:
-    system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: var(--font-body);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
 }
 
 *,
 *::before,
 *::after {
   box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  background: var(--bg);
 }
 
 body,
@@ -34,25 +65,144 @@ h3,
 p,
 figure,
 ul,
-ol {
+ol,
+dl,
+dd {
   margin: 0;
 }
 
 body {
-  background-color: var(--color-background);
-  color: var(--color-text);
-  font-family: var(--font-sans);
+  min-width: 320px;
+  min-height: 100vh;
+  color: var(--ink);
+  background: var(--bg);
+  font-family: var(--font-body);
+  font-size: var(--text-body);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
 
-.app {
-  margin: 0 auto;
-  max-width: var(--content-max-width);
-  padding: var(--space-4) var(--space-3);
+#root,
+.app,
+.app-main,
+main,
+section {
+  min-width: 0;
 }
 
-.app-header p {
-  color: var(--color-text-muted);
-  margin-top: var(--space-2);
+button,
+input,
+select {
+  font: inherit;
+}
+
+button,
+select,
+input[type='date'],
+input[type='number'],
+input[type='file'] {
+  min-height: 44px;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--input-border);
+  border-radius: var(--radius-control);
+}
+
+button {
+  max-width: 100%;
+  padding: 8px 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    color 160ms ease-out,
+    background-color 160ms ease-out,
+    border-color 160ms ease-out,
+    box-shadow 160ms ease-out,
+    transform 100ms ease-out;
+}
+
+input[type='file'] {
+  max-width: 100%;
+}
+
+button:hover {
+  color: var(--primary-text);
+  background: var(--primary-soft);
+  border-color: var(--primary);
+  box-shadow: var(--shadow-hover);
+}
+
+button:active {
+  transform: translateY(1px);
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+a {
+  color: var(--primary-text);
+  text-underline-offset: 2px;
+}
+
+button:focus-visible,
+summary:focus-visible,
+select:focus-visible,
+input:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.app {
+  min-height: 100vh;
+}
+
+.page-container {
+  width: min(calc(100% - 48px), var(--content-max-width));
+  margin-inline: auto;
+}
+
+.app-main {
+  padding-block: var(--space-4) var(--space-5);
+}
+
+.skip-link {
+  position: fixed;
+  z-index: 100;
+  top: var(--space-2);
+  left: var(--space-2);
+  padding: 9px 13px;
+  color: var(--surface);
+  background: var(--ink);
+  border-radius: var(--radius-control);
+  font-weight: 600;
+  transform: translateY(-160%);
+  transition: transform 160ms ease-out;
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+@media (max-width: 719px) {
+  .page-container {
+    width: calc(100% - 32px);
+  }
+
+  .app-main {
+    padding-block: var(--space-3) var(--space-4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
 }
