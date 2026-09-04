@@ -149,7 +149,10 @@ export type WeatherRange =
   | { kind: 'unsupported' }
 
 export type WeatherState =
-  | { status: 'idle'; reason: 'all-locations' | 'unknown-location' | 'no-visits' }
+  | {
+      status: 'idle'
+      reason: 'all-locations' | 'unknown-location' | 'invalid-location' | 'no-visits'
+    }
   | { status: 'unsupported'; reason: 'future' | 'before-1940' }
   | { status: 'loading'; location: string; range: { start: string; end: string } }
   | { status: 'no-match'; query: string }

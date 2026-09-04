@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { FIXTURE_CSV } from './fixtures/visits.fixture.ts'
 import { buildArchiveUrl, buildGeocodeUrl } from './openMeteo.ts'
 import { parseVisitsCsv } from './parseVisitsCsv.ts'
-import { parseLocationQuery } from './weather.ts'
+import { safeWeatherLocationQuery } from './weather.ts'
 
 function params(url: string): Record<string, string> {
   return Object.fromEntries(new URL(url).searchParams)
@@ -59,7 +59,9 @@ describe('AC-12/CF-6 privacy: URLs built from a parsed file carry no identifiers
 
     const urls: string[] = []
     for (const visit of outcome.visits) {
-      const { query } = parseLocationQuery(visit.location)
+      const locationQuery = safeWeatherLocationQuery(visit.location)
+      if (locationQuery === null) continue
+      const { query } = locationQuery
       urls.push(buildGeocodeUrl(query))
       urls.push(
         buildArchiveUrl({
@@ -90,5 +92,23 @@ describe('AC-12/CF-6 privacy: URLs built from a parsed file carry no identifiers
         expect(decodeURIComponent(url)).not.toContain(identifier)
       }
     }
+  })
+
+  it('AC-12/CF-6: a compensating malformed row cannot build a request with patient-secret-900', () => {
+    const malformed = `visit_reason,patient_id_hashed,location,visit_id,visit_date,wait_time_minutes,provider_id
+Ear,pain,patient-secret-900,V900,2026-07-01,20,DR9`
+    const malformedOutcome = parseVisitsCsv(malformed, 'compensating-defects.csv')
+
+    expect(malformedOutcome.ok).toBe(true)
+    if (!malformedOutcome.ok) return
+    expect(malformedOutcome.visits).toHaveLength(1)
+    expect(malformedOutcome.visits[0]?.location).toBe('patient-secret-900')
+
+    const locationQuery = safeWeatherLocationQuery(malformedOutcome.visits[0]?.location ?? '')
+    const geocodeUrl = locationQuery === null ? null : buildGeocodeUrl(locationQuery.query)
+
+    expect(locationQuery).toBeNull()
+    expect(geocodeUrl).toBeNull()
+    expect(String(geocodeUrl)).not.toContain('patient-secret-900')
   })
 })

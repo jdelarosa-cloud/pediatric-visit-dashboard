@@ -128,6 +128,8 @@ export type LocationQuery = {
   stateHint: string | null
 }
 
+const SAFE_US_CITY = /^[\p{L}\p{M}][\p{L}\p{M} .'-]*$/u
+
 export function parseLocationQuery(location: string): LocationQuery {
   const trimmed = location.trim()
   const lastComma = trimmed.lastIndexOf(',')
@@ -141,6 +143,25 @@ export function parseLocationQuery(location: string): LocationQuery {
   // different "Zurich" entirely (D14).
   if (stateHint === undefined || head === '') return { query: trimmed, stateHint: null }
   return { query: head, stateHint }
+}
+
+/**
+ * Automatic weather lookup is deliberately narrower than display/grouping:
+ * only a short, text-only city followed by a recognized US state may leave
+ * the browser. Ambiguous CSV cells stay local even if row defects preserved
+ * the expected column count and shifted an identifier into `location`.
+ */
+export function safeWeatherLocationQuery(location: string): LocationQuery | null {
+  const parsed = parseLocationQuery(location)
+  if (
+    parsed.stateHint === null ||
+    parsed.query.length === 0 ||
+    parsed.query.length > 80 ||
+    !SAFE_US_CITY.test(parsed.query)
+  ) {
+    return null
+  }
+  return parsed
 }
 
 export function pickGeocodeMatch(
@@ -234,10 +255,10 @@ export function weatherRequestKey(
   return `${location}|${range.start}|${range.end}`
 }
 
-export function weatherGate(location: string | null): 'all' | 'unknown' | 'ok' {
+export function weatherGate(location: string | null): 'all' | 'unknown' | 'invalid' | 'ok' {
   if (location === null || location.trim() === '') return 'all'
   // D8 folds every spelling of the placeholder, so a case-insensitive check
   // covers any "unknown" that reached the filter (D14: never geocoded).
   if (location.trim().toLowerCase() === UNKNOWN_LOCATION.toLowerCase()) return 'unknown'
-  return 'ok'
+  return safeWeatherLocationQuery(location) === null ? 'invalid' : 'ok'
 }

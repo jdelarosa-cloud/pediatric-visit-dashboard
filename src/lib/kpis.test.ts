@@ -37,6 +37,15 @@ describe('overview KPIs', () => {
     expect(averageWait([])).toBeNull()
   })
 
+  it('D11: preserves a fractional overall average until the display boundary', () => {
+    const visits: Visit[] = [
+      { ...FIXTURE_VISITS[0], visitId: 'F001', waitTimeMinutes: 14 },
+      { ...FIXTURE_VISITS[0], visitId: 'F002', waitTimeMinutes: 15 },
+    ]
+    expect(averageWait(visits)).toBe(14.5)
+    expect(computeKpis(visits).overallAvgWait).toBe(14.5)
+  })
+
   it('counts distinct locations in the filtered set, including Unknown', () => {
     expect(countLocations(FIXTURE_VISITS)).toBe(3)
     expect(countLocations(filterByLocation(FIXTURE_VISITS, 'Unknown'))).toBe(1)
@@ -56,6 +65,16 @@ describe('averageWaitByLocation', () => {
     ])
     // Treating the null as a zero would give (25 + 15 + 0) / 3 instead.
     expect(stats[0]?.avgWait).not.toBe(40 / 3)
+  })
+
+  it('D11: preserves fractional per-location averages until the display boundary', () => {
+    const visits: Visit[] = [
+      { ...FIXTURE_VISITS[0], visitId: 'F003', location: 'Forest Hills, NY', waitTimeMinutes: 14 },
+      { ...FIXTURE_VISITS[0], visitId: 'F004', location: 'Forest Hills, NY', waitTimeMinutes: 15 },
+    ]
+    expect(averageWaitByLocation(visits)).toEqual([
+      { location: 'Forest Hills, NY', avgWait: 14.5, visits: 2, withWait: 2 },
+    ])
   })
 })
 

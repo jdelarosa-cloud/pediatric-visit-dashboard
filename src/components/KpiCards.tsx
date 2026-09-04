@@ -7,7 +7,7 @@ type KpiCardsProps = {
 
 function formatAverageWait(value: number | null): string {
   if (value === null) return 'Not recorded'
-  return `${Math.round(value)} min`
+  return `${value.toFixed(1)} min`
 }
 
 export function KpiCards({ kpis }: KpiCardsProps) {

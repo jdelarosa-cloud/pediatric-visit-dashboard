@@ -35,7 +35,7 @@ export function StatusBanner({
           />
         </svg>
       </span>
-      <div>
+      <div className={styles.content}>
         <h2 id="upload-error-heading">We Couldn’t Load This File</h2>
         <p className={styles.fileName}>{fileName}</p>
         <p>{error.message}</p>
@@ -45,9 +45,14 @@ export function StatusBanner({
           </p>
         )}
         <div className={styles.actions}>
-          <label className={styles.primaryAction} htmlFor={VISIT_FILE_INPUT_ID}>
+          <button
+            aria-controls={VISIT_FILE_INPUT_ID}
+            className={styles.primaryAction}
+            onClick={() => document.getElementById(VISIT_FILE_INPUT_ID)?.click()}
+            type="button"
+          >
             Choose Another File
-          </label>
+          </button>
           <button onClick={onLoadSample} type="button">
             Load Demo Data
           </button>

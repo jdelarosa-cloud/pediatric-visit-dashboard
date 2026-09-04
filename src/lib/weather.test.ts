@@ -5,6 +5,7 @@ import {
   effectiveWeatherRange,
   parseLocationQuery,
   pickGeocodeMatch,
+  safeWeatherLocationQuery,
   summarizeDailyWeather,
   weatherGate,
   weatherRequestKey,
@@ -195,6 +196,34 @@ describe('weatherGate', () => {
     expect(weatherGate(null)).toBe('all')
     expect(weatherGate('Unknown')).toBe('unknown')
     expect(weatherGate('Bethesda, MD')).toBe('ok')
+  })
+
+  it('AC-12: ambiguous or unsafe location text remains local', () => {
+    expect(weatherGate('Bethesda')).toBe('invalid')
+    expect(weatherGate('Zurich, CH')).toBe('invalid')
+    expect(weatherGate('patient-secret-900')).toBe('invalid')
+    expect(weatherGate('Clinic 12, MD')).toBe('invalid')
+  })
+})
+
+describe('safeWeatherLocationQuery', () => {
+  it('AC-12: accepts a text-only city with either a recognized abbreviation or state name', () => {
+    expect(safeWeatherLocationQuery("St. Mary's, MD")).toEqual({
+      query: "St. Mary's",
+      stateHint: 'Maryland',
+    })
+    expect(safeWeatherLocationQuery('Forest Hills, New York')).toEqual({
+      query: 'Forest Hills',
+      stateHint: 'New York',
+    })
+  })
+
+  it('AC-12: rejects missing, foreign, unrecognized, numeric, and overlong state-qualified places', () => {
+    expect(safeWeatherLocationQuery('Bethesda')).toBeNull()
+    expect(safeWeatherLocationQuery('Zurich, CH')).toBeNull()
+    expect(safeWeatherLocationQuery('Bethesda, ZZ')).toBeNull()
+    expect(safeWeatherLocationQuery('Clinic 12, MD')).toBeNull()
+    expect(safeWeatherLocationQuery(`${'A'.repeat(81)}, MD`)).toBeNull()
   })
 })
 

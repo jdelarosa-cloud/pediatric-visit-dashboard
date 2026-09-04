@@ -30,7 +30,9 @@ dist-ssr
 # Real patient exports must never be committed (council iteration 1, D1).
 # Only the tracked synthetic samples are exempt from this rule.
 *.csv
-!public/samples/*.csv
+!public/samples/valid-visits.csv
+!public/samples/missing-column.csv
+!public/samples/invalid-rows.csv
 !public/sample-visits.csv
 
 # Archived ultra-orchestration runs (same policy as .pipeline/).

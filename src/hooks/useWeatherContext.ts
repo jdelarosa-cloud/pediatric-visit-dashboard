@@ -10,8 +10,8 @@ import {
 import type { Visit, WeatherState } from '../lib/types.ts'
 import {
   effectiveWeatherRange,
-  parseLocationQuery,
   pickGeocodeMatch,
+  safeWeatherLocationQuery,
   summarizeDailyWeather,
   weatherGate,
   weatherRequestKey,
@@ -55,6 +55,9 @@ export function useWeatherContext({
   const [result, setResult] = useState<{ key: string; state: WeatherState } | null>(null)
 
   const gate = weatherGate(location)
+  const locationQuery = location === null ? null : safeWeatherLocationQuery(location)
+  const query = locationQuery?.query ?? null
+  const stateHint = locationQuery?.stateHint ?? null
   const range = effectiveWeatherRange({ startDate, endDate, visits, today: todayIso() })
   // Kept as two primitives rather than one object so the effect's dependency
   // list is stable across renders that produce an equal range.
@@ -66,7 +69,12 @@ export function useWeatherContext({
       : null
 
   useEffect(() => {
-    if (key === null || location === null || spanStart === null || spanEnd === null) return
+    if (
+      key === null ||
+      query === null ||
+      spanStart === null ||
+      spanEnd === null
+    ) return
 
     const span = { start: spanStart, end: spanEnd }
     const controller = new AbortController()
@@ -77,7 +85,6 @@ export function useWeatherContext({
 
     const timer = setTimeout(() => {
       void (async () => {
-        const { query, stateHint } = parseLocationQuery(location)
         try {
           const matches = await cached(buildGeocodeUrl(query), () =>
             fetchGeocode(query, controller.signal),
@@ -125,10 +132,16 @@ export function useWeatherContext({
       clearTimeout(timer)
       controller.abort()
     }
-  }, [key, location, spanStart, spanEnd])
+  }, [key, query, spanStart, spanEnd, stateHint])
 
   if (gate !== 'ok' || location === null) {
-    return { status: 'idle', reason: gate === 'unknown' ? 'unknown-location' : 'all-locations' }
+    const reason =
+      gate === 'unknown'
+        ? 'unknown-location'
+        : gate === 'invalid'
+          ? 'invalid-location'
+          : 'all-locations'
+    return { status: 'idle', reason }
   }
   if (range.kind === 'no-visits') return { status: 'idle', reason: 'no-visits' }
   if (range.kind === 'unsupported') return { status: 'unsupported', reason: 'before-1940' }

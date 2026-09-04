@@ -144,6 +144,7 @@
   background: var(--primary-soft);
   border-radius: var(--radius-control);
   font-weight: 600;
+  overflow-wrap: anywhere;
 }
 
 .spinner {

@@ -12,7 +12,7 @@ This project was built with an AI coding agent under human review. The agent acc
 
 ## How outputs were checked
 
-Pure data behavior is covered by 134 Vitest tests under `src/lib`. The suite includes malformed CSVs, deterministic ordering, null wait handling, filters, KPI calculations, weather range and summary rules, API response validation, and a privacy check that builds weather URLs from parsed CSV input and rejects visit, patient, or provider identifiers.
+Pure data behavior is covered by 140 Vitest tests under `src/lib`. The suite includes malformed CSVs, deterministic ordering, null wait handling, filters, KPI calculations, weather range and summary rules, Open-Meteo URL construction, and privacy-first weather egress checks. One regression parses the exact compensating malformed row that shifts `patient-secret-900` into `location` and proves the local gate prevents a geocoding URL from being built. Live API responses are exercised separately in the browser rather than claimed as unit-test coverage.
 
 Every phase was checked with the real project commands:
 
@@ -26,7 +26,7 @@ The loaded application was also inspected in headless Chrome at desktop, tablet,
 
 ## Review corrections
 
-The process included adversarial review of data safety and documentation claims. One earlier review found that a ragged CSV row could shift values into the wrong fields. The row-width rule was tightened, regression tests were added, and the result was reviewed again. Reviewers also required executed evidence for build-log claims rather than accepting statements that a check had happened.
+The process included adversarial review of data safety and documentation claims. One earlier review found that a ragged CSV row could shift values into the wrong fields. The row-width rule was tightened, regression tests were added, and the result was reviewed again. A later review found that two compensating defects could preserve the expected width while shifting an identifier marker into `location`; the repair added a conservative `City, recognized U.S. state` egress gate before geocoding plus the exact malformed-row regression. Reviewers also required executed evidence for build-log claims rather than accepting statements that a check had happened.
 
 ## Boundaries
 

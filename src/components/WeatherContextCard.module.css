@@ -194,9 +194,11 @@
   animation: skeleton-pulse 1.15s ease-in-out infinite;
 }
 
-.skeletonTitle {
-  width: 180px;
-  height: 14px;
+.loadingMessage {
+  color: var(--muted);
+  font-size: var(--text-small);
+  font-weight: 600;
+  line-height: 1.4;
 }
 
 .skeletonLine {

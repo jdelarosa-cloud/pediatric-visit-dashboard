@@ -7,7 +7,7 @@ import styles from './WeatherContextCard.module.css'
 const IDLE_COPY = {
   'all-locations': {
     title: 'Select one location',
-    message: 'Choose a single location to see weather context for its visit dates.',
+    message: 'Select a single location to see weather context for its visit dates.',
   },
   'unknown-location': {
     title: 'Location unavailable',
@@ -17,16 +17,21 @@ const IDLE_COPY = {
     title: 'No matching visit dates',
     message: 'No visits match the current filters, so there is no date range to look up.',
   },
+  'invalid-location': {
+    title: 'Location format unsupported',
+    message:
+      'Weather context requires a location written as City, ST with a recognized U.S. state.',
+  },
 }
 
 const UNSUPPORTED_COPY = {
   future: {
     title: 'Future dates selected',
-    message: 'Historical weather is available only through today.',
+    message: 'Weather history is only available for dates up to today.',
   },
   'before-1940': {
     title: 'Dates outside coverage',
-    message: 'Historical weather is available from 1940 onward.',
+    message: 'Weather history is available from 1940 onward.',
   },
 }
 
@@ -102,14 +107,14 @@ function MessagePanel({ title, children }: { title: string; children: ReactNode 
   )
 }
 
-function WeatherSkeleton() {
+function WeatherSkeleton({ location }: { location: string }) {
   return (
-    <div aria-hidden="true" className={styles.skeletonLayout}>
+    <div className={styles.skeletonLayout}>
       <div className={styles.skeletonCopy}>
-        <span className={`${styles.skeleton} ${styles.skeletonTitle}`} />
-        <span className={`${styles.skeleton} ${styles.skeletonLine}`} />
+        <p className={styles.loadingMessage}>Loading weather for {location}...</p>
+        <span aria-hidden="true" className={`${styles.skeleton} ${styles.skeletonLine}`} />
       </div>
-      <div className={styles.skeletonMetrics}>
+      <div aria-hidden="true" className={styles.skeletonMetrics}>
         <span className={`${styles.skeleton} ${styles.skeletonMetric}`} />
         <span className={`${styles.skeleton} ${styles.skeletonMetric}`} />
         <span className={`${styles.skeleton} ${styles.skeletonMetric}`} />
@@ -131,24 +136,26 @@ function Body({ state, showLoading }: { state: WeatherState; showLoading: boolea
     case 'loading':
       return (
         <>
-          <span className="visually-hidden">Loading weather for {state.location}.</span>
           {showLoading ? (
-            <WeatherSkeleton />
+            <WeatherSkeleton location={state.location} />
           ) : (
-            <div aria-hidden="true" className={styles.pendingPlaceholder} />
+            <>
+              <span className="visually-hidden">Loading weather for {state.location}...</span>
+              <div aria-hidden="true" className={styles.pendingPlaceholder} />
+            </>
           )}
         </>
       )
     case 'no-match':
       return (
         <MessagePanel title="Location not found">
-          We could not find “{state.query}”. Check the location format and upload a corrected file.
+          {`We could not find "${state.query}" on the map. Try a location written as City, ST.`}
         </MessagePanel>
       )
     case 'error':
       return (
         <MessagePanel title="Weather unavailable">
-          <p>The visit dashboard is still available. Weather can be tried again after changing the location or filters.</p>
+          <p>Weather is unavailable right now. The dashboard still works without it.</p>
           <p className={styles.detail}>{state.message}</p>
         </MessagePanel>
       )
@@ -159,7 +166,7 @@ function Body({ state, showLoading }: { state: WeatherState; showLoading: boolea
             <p className={styles.place}>{formatPlace(state.place)}</p>
             <p className={styles.span}>{formatSpan(state.range)}</p>
           </div>
-          <p className={styles.message}>No weather observations were returned for these dates.</p>
+          <p className={styles.message}>No weather data was returned for these dates.</p>
           <Attribution />
         </div>
       )
@@ -172,7 +179,7 @@ function Body({ state, showLoading }: { state: WeatherState; showLoading: boolea
           </div>
           <Metrics summary={state.summary} />
           <div className={styles.contextNote}>
-            <p>Context only—weather does not explain changes in visits or wait times.</p>
+            <p>Shown for context only. Weather does not explain changes in visits or wait times.</p>
             <Attribution />
           </div>
         </div>

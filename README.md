@@ -1,6 +1,6 @@
 # Pediatric Visit Dashboard
 
-A browser-only React application that turns a pediatric visit CSV into a compact, one-page review of volume, wait times, locations, data coverage, and common visit reasons. Filters recalculate every metric and chart, a data-quality summary explains skipped or adjusted rows, and an optional weather card adds daily context for one selected location. Nothing leaves the browser except a place name, coordinates, and a date range sent to a free weather API.
+A browser-only React application that turns a pediatric visit CSV into a compact, one-page review of volume, wait times, locations, data coverage, and common visit reasons. Filters recalculate every metric and chart, a data-quality summary explains skipped or adjusted rows, and an optional weather card adds daily context for one selected location. CSV rows and identifiers stay in the browser; the only dashboard-derived values sent out are a policy-approved place name, coordinates, and a date range for weather. The page separately requests Google Fonts, which exposes ordinary request metadata but no dashboard data.
 
 This is a take-home exercise, not a production system. See "Known limitations" and "What I would improve for production" before relying on it for anything real.
 
@@ -18,8 +18,8 @@ Implemented and tested:
 - Pure filter functions: inclusive date range, single location, minimum wait time
 - Pure KPI functions: total visits, overall and location wait averages, distinct locations, wait coverage, and top three reasons with a deterministic tie-break
 - A horizontal wait-time chart with a data-table alternative, a ranked reasons chart, and a 25-row visit preview with masked patient identifiers
-- Weather context from Open-Meteo for one selected location and the visible date range, with cancellation, caching, and ten explicit states
-- 134 unit tests on the data and weather logic, run in Node with no browser simulation
+- Weather context from Open-Meteo for one selected, policy-approved U.S. location and the visible date range, with cancellation, caching, and explicit states
+- 140 unit tests on the data and weather logic, run in Node with no browser simulation
 
 ## Technical stack
 
@@ -129,7 +129,7 @@ visit_id,patient_id_hashed,location,visit_date,visit_reason,wait_time_minutes,pr
 V100,h-100,"Bethesda, MD",2026-07-06,Fever,25,DR1
 ```
 
-Any field containing a comma must be quoted, as `"Bethesda, MD"` is above. Three sample files are served from `public/samples/`: a clean twelve-row file, a file missing a column, and an eighteen-row file that triggers every warning category.
+Any field containing a comma must be quoted, as `"Bethesda, MD"` is above. Three sample files are served from `public/samples/`: a clean twelve-row file, a file missing a column, and an eighteen-row file that triggers most warning categories.
 
 Real patient files must stay outside the repository. The `.gitignore` refuses every `.csv` except the tracked synthetic samples, so an export dropped in for testing cannot be committed.
 
@@ -160,7 +160,7 @@ Rows are processed in this order. A skipped row is counted once, under the first
 | `patient_id_hashed` or `provider_id` blank | Keep. Placeholder `Unknown patient` or `Unknown provider` | The visit is still a visit |
 | Text differs only by case or spacing from an earlier value | Keep. Folded to the first spelling seen | `Fever` and `fever ` are one reason. A location literally spelled `unknown` folds into the `Unknown` placeholder |
 
-Dates are stored as canonical `YYYY-MM-DD` strings and compared as strings. No JavaScript Date object is ever created, so no timezone can shift a visit to a neighbouring day.
+Visit dates are stored as canonical `YYYY-MM-DD` strings and compared as strings. No JavaScript Date object is created from a visit date, so no timezone can shift a visit to a neighbouring day. The weather hook creates a `Date` only to determine today's local calendar date for archive-range clamping.
 
 The parse result reports total rows, accepted rows, skipped rows, and normalized rows, plus one warning per category with a count, a plain-language message, and at most five example rows. Row numbers count data rows, where row 1 is the first row after the header.
 
@@ -193,14 +193,14 @@ Why weather, and why this provider: pediatric urgent-care demand is plausibly we
 
 Rules:
 
-- A request is made only when exactly one real location is selected. "All locations" and `Unknown` never trigger a request, and the card says why.
+- A request is made only when exactly one location passes the privacy-first egress policy: a text-only city followed by a recognized U.S. state name or abbreviation, such as `Bethesda, MD`. "All locations", `Unknown`, bare cities, foreign or unrecognized state suffixes, digits, and overlong place values never trigger a request, and the card says why.
 - The date range is the overlap of the date filter and the visible visits, clamped to today because the archive rejects future dates. Ranges entirely in the future or before 1940 are explained without a request.
-- The location text is split on its last comma. If the tail is a US state name or abbreviation, the result in that state is preferred; otherwise the API's first match is used. The matched place is always displayed so a wrong match is visible.
+- After the egress policy accepts the location, its recognized state suffix is removed from the search text and used to prefer a result in that state. If no returned result has that state, the API's first match is used. The matched place is always displayed so a wrong match is visible.
 - Requested variables are daily mean, maximum, and minimum temperature in Fahrenheit and precipitation in inches.
 - Changes are debounced for 300 ms. An in-flight request is aborted when the selection changes, and a response is discarded if its request key no longer matches the current selection.
 - Successful responses are cached in memory for the session, keyed by request URL. Failures are never cached. Nothing is written to storage.
 
-The card shows average temperature, total precipitation, and rainy days over the span, with the sentence "Context only—weather does not explain changes in visits or wait times." It reports weather on the same days as the visits and makes no causal claim.
+The card shows average temperature, total precipitation, and rainy days over the span, with the sentence "Shown for context only. Weather does not explain changes in visits or wait times." It reports weather on the same days as the visits and makes no causal claim.
 
 ## API failure behavior
 
@@ -208,17 +208,17 @@ Every outcome is a distinct state with plain copy: waiting for a single location
 
 ## Privacy decision
 
-Patient and provider data never leave the browser. The only outbound requests are the two weather calls, and they carry a place name, latitude and longitude, dates, variable names, and units. A unit test parses a real CSV, builds every URL the app can build from it, and asserts that no visit id, patient hash, or provider id appears in any of them. Warning examples never include a patient hash. The lint configuration makes any `console` call a build failure, so nothing can be logged. No analytics, no storage, no cookies. The page also loads two font families from Google Fonts on first load; that request carries no dashboard data, only the visitor's IP address and browser identity, the same as any web font. Self-hosting the fonts is a planned improvement.
+Patient and provider data are processed locally and are not inputs to either weather endpoint. The two Open-Meteo calls are the only outbound requests containing dashboard-derived values: a policy-approved place name, latitude and longitude, dates, variable names, and units. Before a geocoding URL can be built, a pure egress gate requires a text-only city and recognized U.S. state; ambiguous values remain local. The privacy regression parses the exact compensating malformed row that shifts `patient-secret-900` into `location` and proves that it cannot produce a geocoding URL. A broader parsed-file test also asserts that no visit id, patient hash, or provider id appears in any URL on the allowed request path. Warning examples never include a patient hash. The lint configuration makes any `console` call a lint failure. No analytics, no storage, no cookies. The page also loads two font families from Google Fonts on first load; those resource requests carry no dashboard data, but they do expose the visitor's IP address and ordinary browser request metadata to Google. Self-hosting the fonts is a planned improvement.
 
 ## Assumptions
 
 - Visit dates are date-only values. A visit on July 4 is July 4 everywhere.
-- Locations follow the `City, ST` convention for best geocoding results. Bare city names still work through the API's first match.
+- Automatic weather lookup accepts only a text-only city plus a recognized U.S. state name or abbreviation. This privacy-first narrowing keeps bare, foreign, numeric, unrecognized, and overlong values local even though some could otherwise geocode.
 - The data comes from a United States clinic chain, so temperatures are Fahrenheit and precipitation is inches.
 - A blank threshold means no wait filtering, and zero is a meaningful threshold.
 - "Today" is the browser's local date.
 - Sample cities are plausible locations for a pediatric urgent-care chain in the Mid-Atlantic and were not verified against any real site list.
-- Fonts load from Google Fonts with a system-font fallback; no dashboard data is involved in that request.
+- Fonts load from Google Fonts with a system-font fallback. No dashboard data is involved, but Google receives the visitor's IP address and ordinary browser request metadata.
 
 ## Tradeoffs
 
@@ -232,7 +232,7 @@ Patient and provider data never leave the browser. The only outbound requests ar
 
 - Parsing is synchronous. Files of a few thousand rows are instant; very large files will pause the page while parsing.
 - Weather requests have no timeout. A connection that hangs rather than fails leaves the card in its loading state until the selection changes.
-- A row with two compensating defects, such as an unquoted comma plus a missing field, keeps the expected cell count and cannot be detected by any count check. The weather URL test guards the one place such a value could leave the browser.
+- A row with two compensating defects, such as an unquoted comma plus a missing field, can keep the expected cell count and cannot be detected by a cell-count check. The automatic-weather egress gate therefore treats ambiguous location text as invalid before URL construction; a regression pins the exact displaced-identifier case. Such a row may still distort locally displayed fields, so reviewers should correct malformed source CSVs.
 - Recharts makes the minified initial JavaScript bundle about 622 kB (about 186 kB compressed), which triggers Vite's advisory chunk-size warning.
 - Light theme only. Dark mode renders the light palette.
 - Location matching for Washington, DC may fall back to the API's first result if its region is spelled differently than expected.
