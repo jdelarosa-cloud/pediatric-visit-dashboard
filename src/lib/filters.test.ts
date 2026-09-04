@@ -44,6 +44,17 @@ describe('filterByDateRange', () => {
     ]
     expect(ids(filterByDateRange(visits, '2026-12-31', '2027-01-01'))).toEqual(['Y2', 'Y3'])
   })
+
+  it('a start date after the end date matches no visits', () => {
+    expect(filterByDateRange(FIXTURE_VISITS, '2026-07-05', '2026-07-02')).toEqual([])
+    expect(
+      applyFilters(FIXTURE_VISITS, {
+        ...DEFAULT_FILTERS,
+        startDate: '2026-07-05',
+        endDate: '2026-07-02',
+      }),
+    ).toEqual([])
+  })
 })
 
 describe('filterByLocation', () => {

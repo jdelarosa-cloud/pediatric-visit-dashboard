@@ -145,12 +145,16 @@ export function parseLocationQuery(location: string): LocationQuery {
 }
 
 /**
- * Automatic weather lookup is deliberately narrower than display/grouping:
- * only a short, text-only city followed by a recognized US state may leave
- * the browser. Ambiguous CSV cells stay local even if row defects preserved
- * the expected column count and shifted an identifier into `location`; a
- * valid-looking query also stays local when it matches any identifier from
- * the full accepted dataset.
+ * Automatic weather lookup accepts a value only if it has the shape of a US
+ * place: a short (<=80 char), text-only city name with no digits, followed by
+ * a recognized US state. It also rejects a query that case-insensitively
+ * equals any patient hash, visit id, or provider id present anywhere in the
+ * full accepted dataset, not just the current filter view. What it cannot
+ * catch: a value that is genuinely alphabetic and no longer matches an
+ * identifier elsewhere in the data — for example one shifted into `location`
+ * by a compensating double row defect — is indistinguishable from a real
+ * place. Such a value passes this gate and would be geocoded if the user
+ * selects it in the location filter.
  */
 export function safeWeatherLocationQuery(
   location: string,

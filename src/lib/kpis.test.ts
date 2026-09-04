@@ -51,6 +51,20 @@ describe('overview KPIs', () => {
     expect(countLocations(filterByLocation(FIXTURE_VISITS, 'Unknown'))).toBe(1)
     expect(countLocations([])).toBe(0)
   })
+
+  it('an empty visit list produces empty-state values everywhere, not errors', () => {
+    expect(countVisits([])).toBe(0)
+    expect(averageWaitByLocation([])).toEqual([])
+    expect(topReasons([])).toEqual([])
+    expect(computeKpis([])).toEqual({
+      totalVisits: 0,
+      overallAvgWait: null,
+      locationCount: 0,
+      avgWaitByLocation: [],
+      topReasons: [],
+      visitsWithoutWait: 0,
+    })
+  })
 })
 
 describe('averageWaitByLocation', () => {
