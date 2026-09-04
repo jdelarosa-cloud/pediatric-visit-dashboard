@@ -54,6 +54,21 @@ describe('filterByLocation', () => {
   })
 })
 
+describe('locationOptions', () => {
+  it('AC-19/CF-3: case-only and accent-only pairs sort adjacent and deterministically under the en base-sensitivity pin', () => {
+    const names = ['Zürich', 'boston', 'Zurich', 'Boston', 'Unknown']
+    const visits: Visit[] = names.map((location, index) => ({
+      ...FIXTURE_VISITS[0],
+      visitId: `L${index}`,
+      location,
+    }))
+    // "boston"/"Boston" and "Zürich"/"Zurich" each compare equal under base
+    // sensitivity, so the stable sort keeps their first-seen order: the result
+    // is fully determined by the pinned locale, not by the machine's default.
+    expect(locationOptions(visits)).toEqual(['boston', 'Boston', 'Zürich', 'Zurich', 'Unknown'])
+  })
+})
+
 describe('filterByMinWait', () => {
   it('P14/D7: a blank threshold means no wait filtering; an active threshold excludes null waits and includes zero', () => {
     expect(ids(filterByMinWait(FIXTURE_VISITS, null))).toHaveLength(8)

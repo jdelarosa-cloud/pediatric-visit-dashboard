@@ -80,7 +80,12 @@ export function normalizeRow(
     normalizations.push({ code: 'nonnumericWait', value: rawWait })
   } else {
     const parsed = Number(rawWait)
-    if (parsed < 0) {
+    // A plain-decimal string of 309 or more digits passes the format check but
+    // overflows to Infinity, which would poison every average it reaches, so it
+    // is nonnumeric rather than a wait (D6, CF-1).
+    if (!Number.isFinite(parsed)) {
+      normalizations.push({ code: 'nonnumericWait', value: rawWait })
+    } else if (parsed < 0) {
       normalizations.push({ code: 'negativeWait', value: rawWait })
     } else {
       waitTimeMinutes = parsed

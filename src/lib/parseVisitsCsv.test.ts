@@ -9,25 +9,26 @@ import {
 import { MAX_WARNING_EXAMPLES, parseVisitsCsv } from './parseVisitsCsv.ts'
 import type { ParseWarning, WarningCode } from './types.ts'
 
-// Hardcoded rather than derived from the type, on purpose: this is the
-// structural check that fails when a new WarningCode is added to types.ts
-// without a matching reproduction being added below (AC-12, VERDICT item 7).
-const ALL_WARNING_CODES: WarningCode[] = [
-  'raggedRow',
-  'missingVisitId',
-  'missingVisitDate',
-  'invalidVisitDate',
-  'duplicateVisitId',
-  'blankLocation',
-  'blankReason',
-  'missingWait',
-  'nonnumericWait',
-  'negativeWait',
-  'missingPatientId',
-  'missingProviderId',
-  'textNormalized',
-  'headersNormalized',
-]
+// The `satisfies Record<WarningCode, true>` makes `tsc` fail if a code is added
+// to the WarningCode union without being listed here; listing it here then
+// fails the structural test below until the new code is reproduced from the
+// single input it uses (AC-12, CF-2).
+const ALL_WARNING_CODES = Object.keys({
+  raggedRow: true,
+  missingVisitId: true,
+  missingVisitDate: true,
+  invalidVisitDate: true,
+  duplicateVisitId: true,
+  blankLocation: true,
+  blankReason: true,
+  missingWait: true,
+  nonnumericWait: true,
+  negativeWait: true,
+  missingPatientId: true,
+  missingProviderId: true,
+  textNormalized: true,
+  headersNormalized: true,
+} satisfies Record<WarningCode, true>) as WarningCode[]
 
 function warningsByCode(warnings: ParseWarning[]): Record<string, ParseWarning> {
   return Object.fromEntries(warnings.map((warning) => [warning.code, warning]))
@@ -301,6 +302,38 @@ describe('parseVisitsCsv P16 ragged rows', () => {
     const ragged = warningsByCode(outcome.warnings).raggedRow
     expect(ragged.count).toBe(1)
     expect(ragged.examples[0].value).toBe('expected 7 columns, found 8')
+  })
+
+  it('CF-3/P16: a stray trailing comma on the header makes every well-formed row ragged', () => {
+    const text = `${FIXTURE_HEADER},\nV001,h-001,"Bethesda, MD",2026-07-01,Fever,25,DR1\nV002,h-002,"Hoboken, NJ",2026-07-02,Cough,15,DR2\n`
+    const outcome = parseVisitsCsv(text)
+    expect(outcome.ok).toBe(true)
+    if (!outcome.ok) return
+    expect(outcome.counts).toEqual({ totalRows: 2, accepted: 0, skipped: 2, normalized: 0 })
+    const ragged = warningsByCode(outcome.warnings).raggedRow
+    expect(ragged.count).toBe(2)
+    expect(ragged.examples[0].value).toBe('expected 8 columns, found 7')
+  })
+
+  it('CF-3/CF-8/P16: one trailing empty cell on every data row is not tolerated', () => {
+    const text = `${FIXTURE_HEADER}\nV001,h-001,"Bethesda, MD",2026-07-01,Fever,25,DR1,\nV002,h-002,"Hoboken, NJ",2026-07-02,Cough,15,DR2,\n`
+    const outcome = parseVisitsCsv(text)
+    expect(outcome.ok).toBe(true)
+    if (!outcome.ok) return
+    expect(outcome.counts).toEqual({ totalRows: 2, accepted: 0, skipped: 2, normalized: 0 })
+    const ragged = warningsByCode(outcome.warnings).raggedRow
+    expect(ragged.count).toBe(2)
+    expect(ragged.examples[0].value).toBe('expected 7 columns, found 8')
+  })
+
+  it('CF-3: a row of only delimiters is absorbed by skipEmptyLines greedy and never counted', () => {
+    const text = `${FIXTURE_HEADER}\nV001,h-001,"Bethesda, MD",2026-07-01,Fever,25,DR1\n,,,,,,\nV002,h-002,"Hoboken, NJ",2026-07-02,Cough,15,DR2\n`
+    const outcome = parseVisitsCsv(text)
+    expect(outcome.ok).toBe(true)
+    if (!outcome.ok) return
+    expect(outcome.counts).toEqual({ totalRows: 2, accepted: 2, skipped: 0, normalized: 0 })
+    expect(outcome.visits.map((visit) => visit.sourceRow)).toEqual([1, 2])
+    expect(warningsByCode(outcome.warnings).raggedRow).toBeUndefined()
   })
 
   it('AC-12: none of the three ragged reproductions leak a patient hash into an accepted visit or a warning example', () => {

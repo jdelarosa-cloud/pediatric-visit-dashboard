@@ -9,6 +9,7 @@ import {
 } from './filters.ts'
 import { FIXTURE_VISITS } from './fixtures/visits.fixture.ts'
 import { averageWaitByLocation, computeKpis, countVisits, topReasons } from './kpis.ts'
+import type { Visit } from './types.ts'
 
 describe('countVisits', () => {
   it('countVisits reflects the set it is given', () => {
@@ -29,6 +30,28 @@ describe('averageWaitByLocation', () => {
     ])
     // Treating the null as a zero would give (25 + 15 + 0) / 3 instead.
     expect(stats[0]?.avgWait).not.toBe(40 / 3)
+  })
+})
+
+describe('averageWaitByLocation tie-breaks', () => {
+  function visit(location: string, waitTimeMinutes: number | null, index: number): Visit {
+    return { ...FIXTURE_VISITS[0], visitId: `T${index}`, location, waitTimeMinutes }
+  }
+
+  it('AC-19/CF-3: equal averages and equal null averages both fall through to the pinned location comparison', () => {
+    const stats = averageWaitByLocation([
+      visit('Boston', 20, 1),
+      visit('Albany', 20, 2),
+      visit('Zurich', null, 3),
+      visit('Denver', null, 4),
+    ])
+    expect(stats.map((stat) => stat.location)).toEqual(['Albany', 'Boston', 'Denver', 'Zurich'])
+    expect(stats.map((stat) => stat.avgWait)).toEqual([20, 20, null, null])
+  })
+
+  it('AC-19/CF-3: an accent-only pair with equal averages keeps its first-seen order under base sensitivity', () => {
+    const stats = averageWaitByLocation([visit('Zürich', 20, 5), visit('Zurich', 20, 6)])
+    expect(stats.map((stat) => stat.location)).toEqual(['Zürich', 'Zurich'])
   })
 })
 

@@ -153,6 +153,16 @@ describe('normalizeRow', () => {
     expect(result.normalizations).toEqual([{ code: 'nonnumericWait', value: 'Infinity' }])
   })
 
+  it('D6/CF-1: a digit string that overflows to Infinity is nonnumeric, not a wait', () => {
+    const overflowing = `1${'0'.repeat(320)}`
+    expect(Number.isFinite(Number(overflowing))).toBe(false)
+    const result = normalizeRow(withCell(5, overflowing), INDEXES, 14)
+    expect(result.kind).toBe('accepted')
+    if (result.kind !== 'accepted') return
+    expect(result.visit.waitTimeMinutes).toBeNull()
+    expect(result.normalizations).toEqual([{ code: 'nonnumericWait', value: overflowing }])
+  })
+
   it('D6: hex, exponent, and leading-plus wait strings all fail the plain-decimal format check', () => {
     for (const value of ['0x1A', '1e2', '+5']) {
       const result = normalizeRow(withCell(5, value), INDEXES, 14)

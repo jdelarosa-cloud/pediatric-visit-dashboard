@@ -32,3 +32,6 @@ dist-ssr
 *.csv
 !public/samples/*.csv
 !public/sample-visits.csv
+
+# Archived ultra-orchestration runs (same policy as .pipeline/).
+.pipeline-runs/
