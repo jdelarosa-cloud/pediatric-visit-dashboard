@@ -114,12 +114,8 @@
 }
 
 .primaryButton:hover {
+  color: var(--surface);
   background: #185fb9;
-}
-
-.disabled {
-  cursor: not-allowed;
-  opacity: 0.55;
 }
 
 .secondaryButton {
@@ -274,7 +270,7 @@
   animation: popover-in 180ms ease-out both;
 }
 
-.popover h2 {
+.popover h3 {
   font-family: var(--font-heading);
   font-size: var(--text-card);
 }

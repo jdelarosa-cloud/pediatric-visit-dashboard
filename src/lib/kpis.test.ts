@@ -8,13 +8,39 @@ import {
   locationOptions,
 } from './filters.ts'
 import { FIXTURE_VISITS } from './fixtures/visits.fixture.ts'
-import { averageWaitByLocation, computeKpis, countVisits, topReasons } from './kpis.ts'
+import {
+  averageWait,
+  averageWaitByLocation,
+  computeKpis,
+  countLocations,
+  countVisits,
+  topReasons,
+} from './kpis.ts'
 import type { Visit } from './types.ts'
 
 describe('countVisits', () => {
   it('countVisits reflects the set it is given', () => {
     expect(countVisits(FIXTURE_VISITS)).toBe(8)
     expect(countVisits(filterByMinWait(FIXTURE_VISITS, 15))).toBe(3)
+  })
+})
+
+describe('overview KPIs', () => {
+  it('calculates the overall average from recorded waits only and treats zero as recorded', () => {
+    // (25 + 15 + 10 + 35 + 0) / 5 = 17; three null waits are excluded.
+    expect(averageWait(FIXTURE_VISITS)).toBe(17)
+    expect(averageWait(filterByLocation(FIXTURE_VISITS, 'Hoboken, NJ'))).toBe(15)
+  })
+
+  it('returns null when no visit has a recorded wait', () => {
+    expect(averageWait(filterByLocation(FIXTURE_VISITS, 'Unknown'))).toBeNull()
+    expect(averageWait([])).toBeNull()
+  })
+
+  it('counts distinct locations in the filtered set, including Unknown', () => {
+    expect(countLocations(FIXTURE_VISITS)).toBe(3)
+    expect(countLocations(filterByLocation(FIXTURE_VISITS, 'Unknown'))).toBe(1)
+    expect(countLocations([])).toBe(0)
   })
 })
 
@@ -90,6 +116,8 @@ describe('purity', () => {
     countVisits(FIXTURE_VISITS)
     averageWaitByLocation(FIXTURE_VISITS)
     topReasons(FIXTURE_VISITS)
+    averageWait(FIXTURE_VISITS)
+    countLocations(FIXTURE_VISITS)
     const kpis = computeKpis(FIXTURE_VISITS)
 
     expect(JSON.stringify(FIXTURE_VISITS)).toBe(before)
@@ -104,6 +132,8 @@ describe('purity', () => {
       'K008',
     ])
     expect(kpis.totalVisits).toBe(8)
+    expect(kpis.overallAvgWait).toBe(17)
+    expect(kpis.locationCount).toBe(3)
     expect(kpis.visitsWithoutWait).toBe(3)
   })
 })

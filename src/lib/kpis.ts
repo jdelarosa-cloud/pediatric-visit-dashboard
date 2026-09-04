@@ -11,6 +11,23 @@ export function countVisits(visits: readonly Visit[]): number {
   return visits.length
 }
 
+export function averageWait(visits: readonly Visit[]): number | null {
+  let sum = 0
+  let recorded = 0
+
+  for (const visit of visits) {
+    if (visit.waitTimeMinutes === null) continue
+    sum += visit.waitTimeMinutes
+    recorded += 1
+  }
+
+  return recorded === 0 ? null : sum / recorded
+}
+
+export function countLocations(visits: readonly Visit[]): number {
+  return new Set(visits.map((visit) => visit.location)).size
+}
+
 export function averageWaitByLocation(visits: readonly Visit[]): LocationWaitStat[] {
   const groups = new Map<string, LocationGroup>()
 
@@ -71,6 +88,8 @@ export function topReasons(visits: readonly Visit[], limit = 3): ReasonCount[] {
 export function computeKpis(visits: readonly Visit[]): Kpis {
   return {
     totalVisits: countVisits(visits),
+    overallAvgWait: averageWait(visits),
+    locationCount: countLocations(visits),
     avgWaitByLocation: averageWaitByLocation(visits),
     topReasons: topReasons(visits),
     visitsWithoutWait: visits.filter((visit) => visit.waitTimeMinutes === null).length,

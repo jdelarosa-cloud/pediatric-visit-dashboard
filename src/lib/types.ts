@@ -107,6 +107,10 @@ export type ReasonCount = {
 
 export type Kpis = {
   totalVisits: number
+  /** Mean of recorded waits across the filtered visit set; null when none are recorded. */
+  overallAvgWait: number | null
+  /** Number of distinct location values represented in the filtered visit set. */
+  locationCount: number
   avgWaitByLocation: LocationWaitStat[]
   topReasons: ReasonCount[]
   visitsWithoutWait: number

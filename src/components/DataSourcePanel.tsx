@@ -37,6 +37,7 @@ export function DataSourcePanel({
   const [isDragging, setIsDragging] = useState(false)
   const [fileHint, setFileHint] = useState<string | null>(null)
   const detailsRef = useRef<HTMLDetailsElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const showProcessing = useDelayedPending(isLoading)
 
   useEffect(() => {
@@ -106,14 +107,15 @@ export function DataSourcePanel({
   const fileInput = (
     <input
       accept=".csv,text/csv"
-      className="visually-hidden"
       disabled={isLoading}
+      hidden
       id={VISIT_FILE_INPUT_ID}
       onChange={(event) => {
         const file = event.currentTarget.files?.[0]
         if (file) chooseFile(file)
         event.currentTarget.value = ''
       }}
+      ref={fileInputRef}
       type="file"
     />
   )
@@ -143,7 +145,7 @@ export function DataSourcePanel({
             </svg>
           </summary>
           <div className={styles.popover}>
-            <h2>Change Data Source</h2>
+            <h3>Change Data Source</h3>
             <p className={styles.popoverCopy}>Replace the current CSV without leaving the page.</p>
             <div
               {...dropHandlers}
@@ -153,9 +155,14 @@ export function DataSourcePanel({
                 <strong>{isDragging ? 'Drop the CSV to begin' : 'Drop a CSV here'}</strong>
                 <span>Processed locally in this browser</span>
               </div>
-              <label className={`${styles.button} ${styles.primaryButton}`} htmlFor={VISIT_FILE_INPUT_ID}>
+              <button
+                className={`${styles.button} ${styles.primaryButton}`}
+                disabled={isLoading}
+                onClick={() => fileInputRef.current?.click()}
+                type="button"
+              >
                 Browse Files
-              </label>
+              </button>
               {fileInput}
             </div>
             {fileHint !== null && (
@@ -211,13 +218,14 @@ export function DataSourcePanel({
               Use a visit export with the seven required columns. Files are processed locally.
             </p>
             <div className={styles.actions}>
-              <label
-                aria-disabled={isLoading}
-                className={`${styles.button} ${styles.primaryButton} ${isLoading ? styles.disabled : ''}`}
-                htmlFor={VISIT_FILE_INPUT_ID}
+              <button
+                className={`${styles.button} ${styles.primaryButton}`}
+                disabled={isLoading}
+                onClick={() => fileInputRef.current?.click()}
+                type="button"
               >
                 Browse Files
-              </label>
+              </button>
               {fileInput}
               <button
                 className={styles.secondaryButton}
