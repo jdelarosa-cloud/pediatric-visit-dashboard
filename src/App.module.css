@@ -1,0 +1,20 @@
+.main {
+  display: grid;
+  gap: 18px;
+}
+
+.loadedSource {
+  display: flex;
+  justify-content: flex-end;
+  min-height: 44px;
+}
+
+@media (max-width: 719px) {
+  .main {
+    gap: var(--space-3);
+  }
+
+  .loadedSource {
+    width: 100%;
+  }
+}

@@ -1,0 +1,85 @@
+visit_id,patient_id_hashed,location,visit_date,visit_reason,wait_time_minutes,provider_id
+V001,hash001,"Bethesda, MD",2026-07-01,Fever,25,DR1
+V002,hash002,"Hoboken, NJ",2026-07-01,Cough,18,DR2
+V003,hash003,"Forest Hills, NY",2026-07-01,Ear pain,14,DR3
+V004,hash004,"Bayside, NY",2026-07-01,Rash,12,DR4
+V005,hash005,"Bethesda, MD",2026-07-02,Sore throat,31,DR5
+V006,hash006,"Hoboken, NJ",2026-07-02,Stomach pain,22,DR6
+V007,hash007,"Forest Hills, NY",2026-07-02,Injury,9,DR7
+V008,hash008,"Bayside, NY",2026-07-02,Well visit,8,DR8
+V009,hash009,"Bethesda, MD",2026-07-03,Cough,27,DR1
+V010,hash010,"Hoboken, NJ",2026-07-03,Fever,34,DR2
+V011,hash011,"Forest Hills, NY",2026-07-03,Rash,16,DR3
+V012,hash012,"Bayside, NY",2026-07-03,Ear pain,19,DR4
+V013,hash013,"Bethesda, MD",2026-07-04,Stomach pain,29,DR5
+V014,hash014,"Hoboken, NJ",2026-07-04,Sore throat,21,DR6
+V015,hash015,"Forest Hills, NY",2026-07-04,Well visit,11,DR7
+V016,hash016,"Bayside, NY",2026-07-04,Injury,15,DR8
+V017,hash017,"Bethesda, MD",2026-07-05,Fever,38,DR1
+V018,hash018,"Hoboken, NJ",2026-07-05,Cough,24,DR2
+V019,hash019,"Forest Hills, NY",2026-07-05,Ear pain,17,DR3
+V020,hash020,"Bayside, NY",2026-07-05,Rash,13,DR4
+V021,hash021,"Bethesda, MD",2026-07-06,Sore throat,33,DR5
+V022,hash022,"Hoboken, NJ",2026-07-06,Stomach pain,26,DR6
+V023,hash023,"Forest Hills, NY",2026-07-06,Injury,10,DR7
+V024,hash024,"Bayside, NY",2026-07-06,Well visit,7,DR8
+V025,hash025,"Bethesda, MD",2026-07-07,Cough,30,DR1
+V026,hash026,"Hoboken, NJ",2026-07-07,Fever,28,DR2
+V027,hash027,"Forest Hills, NY",2026-07-07,Rash,18,DR3
+V028,hash028,"Bayside, NY",2026-07-07,Ear pain,20,DR4
+V029,hash029,"Bethesda, MD",2026-07-08,Stomach pain,36,DR5
+V030,hash030,"Hoboken, NJ",2026-07-08,Sore throat,23,DR6
+V031,hash031,"Forest Hills, NY",2026-07-08,Well visit,12,DR7
+V032,hash032,"Bayside, NY",2026-07-08,Injury,16,DR8
+V033,hash033,"Bethesda, MD",2026-07-09,Fever,41,DR1
+V034,hash034,"Hoboken, NJ",2026-07-09,Cough,25,DR2
+V035,hash035,"Forest Hills, NY",2026-07-09,Ear pain,19,DR3
+V036,hash036,"Bayside, NY",2026-07-09,Rash,14,DR4
+V037,hash037,"Bethesda, MD",2026-07-10,Sore throat,32,DR5
+V038,hash038,"Hoboken, NJ",2026-07-10,Stomach pain,27,DR6
+V039,hash039,"Forest Hills, NY",2026-07-10,Injury,11,DR7
+V040,hash040,"Bayside, NY",2026-07-10,Well visit,9,DR8
+V041,hash041,"Bethesda, MD",2026-07-11,Cough,29,DR1
+V042,hash042,"Hoboken, NJ",2026-07-11,Fever,35,DR2
+V043,hash043,"Forest Hills, NY",2026-07-11,Rash,15,DR3
+V044,hash044,"Bayside, NY",2026-07-11,Ear pain,18,DR4
+V045,hash045,"Bethesda, MD",2026-07-12,Stomach pain,37,DR5
+V046,hash046,"Hoboken, NJ",2026-07-12,Sore throat,22,DR6
+V047,hash047,"Forest Hills, NY",2026-07-12,Well visit,13,DR7
+V048,hash048,"Bayside, NY",2026-07-12,Injury,17,DR8
+V049,hash049,"Bethesda, MD",2026-07-13,Fever,39,DR1
+V050,hash050,"Hoboken, NJ",2026-07-13,Cough,26,DR2
+V051,hash051,"Forest Hills, NY",2026-07-13,Ear pain,20,DR3
+V052,hash052,"Bayside, NY",2026-07-13,Rash,15,DR4
+V053,hash053,"Bethesda, MD",2026-07-14,Sore throat,34,DR5
+V054,hash054,"Hoboken, NJ",2026-07-14,Stomach pain,28,DR6
+V055,hash055,"Forest Hills, NY",2026-07-14,Injury,12,DR7
+V056,hash056,"Bayside, NY",2026-07-14,Well visit,10,DR8
+V057,hash057,"Bethesda, MD",2026-07-15,Cough,31,DR1
+V058,hash058,"Hoboken, NJ",2026-07-15,Fever,36,DR2
+V059,hash059,"Forest Hills, NY",2026-07-15,Rash,17,DR3
+V060,hash060,"Bayside, NY",2026-07-15,Ear pain,21,DR4
+V061,hash061,"Bethesda, MD",2026-07-16,Stomach pain,35,DR5
+V062,hash062,"Hoboken, NJ",2026-07-16,Sore throat,24,DR6
+V063,hash063,"Forest Hills, NY",2026-07-16,Well visit,14,DR7
+V064,hash064,"Bayside, NY",2026-07-16,Injury,18,DR8
+V065,hash065,"Bethesda, MD",2026-07-17,Fever,40,DR1
+V066,hash066,"Hoboken, NJ",2026-07-17,Cough,27,DR2
+V067,hash067,"Forest Hills, NY",2026-07-17,Ear pain,16,DR3
+V068,hash068,"Bayside, NY",2026-07-17,Rash,13,DR4
+V069,hash069,"Bethesda, MD",2026-07-18,Sore throat,32,DR5
+V070,hash070,"Hoboken, NJ",,Stomach pain,20,DR6
+V001,hash071,"Forest Hills, NY",2026-07-19,Injury,10,DR7
+,hash072,"Bayside, NY",2026-07-20,Well visit,8,DR8
+V073,hash073,"Bethesda, MD",2026-07-32,Fever,30,DR1
+V074,hash074,"Hoboken, NJ",07/22/2026,Cough,22,DR2
+V075,hash075,,2026-07-23,Ear pain,18,DR3
+V076,hash076,"Bayside, NY",2026-07-24,,15,DR4
+V077,hash077,"Bethesda, MD",2026-07-25,Sore throat,,DR5
+V078,hash078,"Hoboken, NJ",2026-07-26,Stomach pain,twenty,DR6
+V079,hash079,"Forest Hills, NY",2026-07-27,Injury,-4,DR7
+V080,hash080,"Bayside, NY",2026-07-28,Well visit,9,
+V081,,"Bethesda, MD",2026-07-29,Fever,34,DR1
+V082,hash082," bethesda,   md ",2026-07-30,Cough,26,DR2
+V083,hash083,"Forest Hills, NY",2026-07-31,fever,17,DR3
+V084,hash084,"Bayside, NY",2026-07-31,Rash,17

@@ -1,0 +1,384 @@
+.section {
+  display: grid;
+  gap: 10px;
+}
+
+.sectionHeading p {
+  color: var(--primary-text);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.sectionHeading h2 {
+  margin-top: 3px;
+  font-family: var(--font-heading);
+  font-size: var(--text-section);
+  line-height: 1.3;
+}
+
+.card {
+  padding: 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-rest);
+}
+
+.dropzone {
+  display: grid;
+  min-height: 220px;
+  padding: var(--space-5);
+  text-align: center;
+  background: var(--surface-subtle);
+  border: 1.5px dashed var(--input-border);
+  border-radius: 10px;
+  place-items: center;
+  transition:
+    background-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.dragging {
+  background: var(--primary-soft);
+  border-color: var(--primary);
+}
+
+.dropContent {
+  max-width: 650px;
+}
+
+.uploadIcon {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 12px;
+  color: var(--primary-text);
+  background: var(--primary-soft);
+  border-radius: 12px;
+  place-items: center;
+  transition: transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.dragging .uploadIcon {
+  transform: translateY(-2px);
+}
+
+.uploadIcon svg {
+  width: 25px;
+  height: 25px;
+}
+
+.dropTitle {
+  font-family: var(--font-heading);
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.dropCopy {
+  margin-top: 4px;
+  color: var(--muted);
+}
+
+.actions,
+.popoverActions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.button,
+.downloadLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  border-radius: var(--radius-control);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.button {
+  padding: 8px 14px;
+  border: 1px solid transparent;
+}
+
+.primaryButton {
+  color: var(--surface);
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+.primaryButton:hover {
+  background: #185fb9;
+}
+
+.disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.secondaryButton {
+  background: var(--surface);
+}
+
+.downloadLink {
+  padding: 8px;
+}
+
+.fileHint {
+  margin-top: 10px;
+  color: var(--danger);
+  font-size: var(--text-small);
+  font-weight: 600;
+}
+
+.processing {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 42px;
+  margin-top: 10px;
+  color: var(--primary-text);
+  background: var(--primary-soft);
+  border-radius: var(--radius-control);
+  font-weight: 600;
+}
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #b9d0ef;
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 720ms linear infinite;
+}
+
+.requiredColumns {
+  margin-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.requiredColumns summary {
+  min-height: 40px;
+  padding-block: 9px;
+  color: var(--primary-text);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.requiredColumns p {
+  padding-bottom: 10px;
+  color: var(--muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.compactWrap {
+  display: flex;
+  position: relative;
+  z-index: 10;
+  justify-content: flex-end;
+}
+
+.menu {
+  position: relative;
+}
+
+.menu > summary {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  gap: 9px;
+  padding: 8px 12px;
+  background: var(--surface);
+  border: 1px solid var(--input-border);
+  border-radius: 9px;
+  box-shadow: var(--shadow-rest);
+  cursor: pointer;
+  list-style: none;
+  transition:
+    color 160ms ease-out,
+    background-color 160ms ease-out,
+    border-color 160ms ease-out,
+    box-shadow 160ms ease-out;
+}
+
+.menu > summary::-webkit-details-marker {
+  display: none;
+}
+
+.menu > summary:hover,
+.menu[open] > summary {
+  color: var(--primary-text);
+  background: var(--primary-soft);
+  border-color: var(--primary);
+  box-shadow: var(--shadow-hover);
+}
+
+.statusDot {
+  flex: 0 0 9px;
+  width: 9px;
+  height: 9px;
+  background: var(--positive);
+  border-radius: 50%;
+}
+
+.statusWarning {
+  background: var(--warning);
+}
+
+.fileName {
+  max-width: 230px;
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fileMeta {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.chevron {
+  width: 16px;
+  height: 16px;
+  transition: transform 180ms ease-out;
+}
+
+.menu[open] .chevron {
+  transform: rotate(180deg);
+}
+
+.popover {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 380px;
+  max-width: calc(100vw - 32px);
+  padding: var(--space-3);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  box-shadow: 0 16px 40px rgb(15 36 64 / 18%);
+  animation: popover-in 180ms ease-out both;
+}
+
+.popover h2 {
+  font-family: var(--font-heading);
+  font-size: var(--text-card);
+}
+
+.popoverCopy {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: var(--text-small);
+}
+
+.compactDropzone {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 76px;
+  margin-top: 12px;
+  padding: 12px;
+  background: var(--surface-subtle);
+  border: 1.5px dashed var(--input-border);
+  border-radius: 9px;
+}
+
+.compactDropzone strong,
+.compactDropzone span {
+  display: block;
+}
+
+.compactDropzone strong {
+  font-size: var(--text-small);
+}
+
+.compactDropzone span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.popoverActions {
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes popover-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 719px) {
+  .card {
+    padding: var(--space-3);
+  }
+
+  .dropzone {
+    min-height: 240px;
+    padding: 22px var(--space-3);
+  }
+
+  .actions,
+  .popoverActions,
+  .compactDropzone {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .actions .button,
+  .actions button,
+  .actions .downloadLink,
+  .popoverActions button,
+  .popoverActions .downloadLink,
+  .compactDropzone .button {
+    width: 100%;
+  }
+
+  .compactWrap,
+  .menu {
+    width: 100%;
+  }
+
+  .menu > summary {
+    width: 100%;
+  }
+
+  .fileName {
+    flex: 1;
+    max-width: none;
+  }
+
+  .fileMeta {
+    display: none;
+  }
+
+  .popover {
+    width: calc(100vw - 32px);
+  }
+}

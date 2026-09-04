@@ -90,6 +90,8 @@ section {
   min-width: 0;
 }
 
+/* Every form control across the upcoming components shares one 44px, 8px-radius
+   baseline; styling the bare elements once avoids repeating it in each CSS module. */
 button,
 input,
 select {
@@ -184,6 +186,17 @@ a:focus-visible {
 
 .skip-link:focus {
   transform: translateY(0);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 @media (max-width: 719px) {
