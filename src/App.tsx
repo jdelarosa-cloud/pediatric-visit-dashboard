@@ -5,6 +5,9 @@ import { DataSourcePanel } from './components/DataSourcePanel.tsx'
 import { FilterBar } from './components/FilterBar.tsx'
 import { KpiCards } from './components/KpiCards.tsx'
 import { StatusBanner } from './components/StatusBanner.tsx'
+import { TopReasonsList } from './components/TopReasonsList.tsx'
+import { VisitPreviewTable } from './components/VisitPreviewTable.tsx'
+import { WaitByLocationChart } from './components/WaitByLocationChart.tsx'
 import { useVisitsLoader } from './hooks/useVisitsLoader.ts'
 import { applyFilters, DEFAULT_FILTERS, locationOptions } from './lib/filters.ts'
 import { computeKpis } from './lib/kpis.ts'
@@ -31,6 +34,10 @@ function App() {
   function handleLoadSample() {
     setFilters(DEFAULT_FILTERS)
     void loadSample()
+  }
+
+  function resetFilters() {
+    setFilters(DEFAULT_FILTERS)
   }
 
   return (
@@ -89,7 +96,7 @@ function App() {
                     locations={locations}
                     matchingCount={filteredVisits.length}
                     onChange={setFilters}
-                    onReset={() => setFilters(DEFAULT_FILTERS)}
+                    onReset={resetFilters}
                     totalCount={visits.length}
                   />
                 </div>
@@ -97,7 +104,19 @@ function App() {
               <KpiCards kpis={kpis} />
             </section>
 
-            <DataQualitySummary counts={data.outcome.counts} warnings={data.outcome.warnings} />
+            <div aria-label="Visit analysis" className={styles.analysisGrid}>
+              <WaitByLocationChart onReset={resetFilters} stats={kpis.avgWaitByLocation} />
+              <TopReasonsList reasons={kpis.topReasons} totalVisits={kpis.totalVisits} />
+            </div>
+
+            <div className={styles.lowerGrid}>
+              <DataQualitySummary
+                compact
+                counts={data.outcome.counts}
+                warnings={data.outcome.warnings}
+              />
+              <VisitPreviewTable visits={filteredVisits} />
+            </div>
           </>
         )}
 

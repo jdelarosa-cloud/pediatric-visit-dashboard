@@ -4,6 +4,7 @@ import styles from './DataQualitySummary.module.css'
 type DataQualitySummaryProps = {
   counts: ParseCounts
   warnings: ParseWarning[]
+  compact?: boolean
 }
 
 const KIND_LABELS = {
@@ -24,14 +25,14 @@ function qualitySummary(counts: ParseCounts, warnings: ParseWarning[]): string {
   return 'Most rows are ready. Adjusted rows remain included; skipped rows are excluded from the dashboard.'
 }
 
-export function DataQualitySummary({ counts, warnings }: DataQualitySummaryProps) {
+export function DataQualitySummary({ counts, warnings, compact = false }: DataQualitySummaryProps) {
   const hasWarning = counts.skipped > 0 || counts.normalized > 0
   const isEmpty = counts.accepted === 0
 
   return (
     <section
       aria-labelledby="data-quality-heading"
-      className={`${styles.card} ${hasWarning ? styles.warning : styles.clean} ${isEmpty ? styles.empty : ''}`}
+      className={`${styles.card} ${hasWarning ? styles.warning : styles.clean} ${isEmpty ? styles.empty : ''} ${compact ? styles.compact : ''}`}
     >
       <div className={styles.topline}>
         <div className={styles.copy}>
@@ -58,7 +59,11 @@ export function DataQualitySummary({ counts, warnings }: DataQualitySummaryProps
       {warnings.length > 0 && (
         <details className={styles.details}>
           <summary>Review Data-Quality Details</summary>
-          <ul className={styles.warningList}>
+          <ul
+            aria-label={compact ? 'Scrollable data-quality details' : undefined}
+            className={styles.warningList}
+            tabIndex={compact ? 0 : undefined}
+          >
             {warnings.map((warning) => (
               <li key={warning.code}>
                 <div className={styles.warningHeading}>

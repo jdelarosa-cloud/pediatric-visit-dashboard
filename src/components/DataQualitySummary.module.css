@@ -158,6 +158,33 @@
   overflow-wrap: anywhere;
 }
 
+.compact {
+  display: flex;
+  flex-direction: column;
+}
+
+.compact .topline {
+  align-items: stretch;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.compact .metrics {
+  flex-basis: auto;
+  width: 100%;
+}
+
+.compact .warningList {
+  max-height: 216px;
+  padding-right: 4px;
+  overflow-y: auto;
+}
+
+.compact .warningList:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
 @media (max-width: 899px) {
   .topline {
     align-items: stretch;
