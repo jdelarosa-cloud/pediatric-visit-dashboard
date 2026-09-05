@@ -131,6 +131,8 @@ V100,h-100,"Bethesda, MD",2026-07-06,Fever,25,DR1
 
 Any field containing a comma must be quoted, as `"Bethesda, MD"` is above. Three sample files are served from `public/samples/`: a clean twelve-row file, a file missing a column, and an eighteen-row file that triggers most warning categories.
 
+For a fuller walkthrough, [`docs/test-files.zip`](docs/test-files.zip) holds ten synthetic files with a manifest: the demo and clean files, the three rejection cases (missing column, empty, header only), a month/day/year file that loads with every row skipped, a ragged-row file, a file whose locations trigger each weather state, and a file with differently cased headers and an extra column.
+
 Real patient files must stay outside the repository. The `.gitignore` refuses every `.csv` except the tracked synthetic samples, so an export dropped in for testing cannot be committed.
 
 ## Required-column validation
@@ -266,4 +268,4 @@ How the output was verified:
 - The live application was exercised through headless Chrome's DevTools Protocol at 1440, 1024, 768, 390, and 360 px. Checks covered horizontal overflow, paired-card heights, native disclosures, live weather success and delayed skeleton behavior, filter updates, and reduced-motion media settings. Playwright was not installed and was not added solely for this manual pass.
 - A manual checklist covers what automation cannot judge: layout at small widths, screen-reader announcements, real spreadsheet exports, and slow networks.
 
-The review logs are kept locally and are not committed.
+The full record is in the repository: [`docs/session-log.md`](docs/session-log.md) tells the story in order, with the decisions taken at each gate and what each review caught, and [`docs/review-record/`](docs/review-record/) holds the plan that served as the contract plus the verdicts and final reports of the three review runs, scrubbed only of the company name, the assignment file name, and local paths. The raw build logs, auditor findings, and session transcripts are not committed; they are long, repetitive, and contain confidential material.
